@@ -224,9 +224,24 @@ export async function autoScrapeSotweProfile(inputUrlOrHandle, onProgress) {
     throw new Error("Lütfen geçerli bir Sotwe kullanıcı adı veya profil linki girin.");
   }
 
-  onProgress?.(`@${username} profili taranıyor...`);
+  onProgress?.(`@${username} taranıyor...`);
 
-  // Step 1: Try public fast mirror APIs (fxtwitter / vxtwitter) to get user profile metadata
+  // Step 1: Call Vercel Serverless Backend API (Runs on server, completely mobile-friendly)
+  try {
+    onProgress?.("Sunucu üzerinden videolar taranıyor...");
+    const apiRes = await fetchWithTimeout(`/api/scrape?username=${encodeURIComponent(username)}`, {}, 8000);
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data.success && data.posts && data.posts.length > 0) {
+        onProgress?.(`Başarılı! ${data.posts.length} video bulundu.`);
+        return data;
+      }
+    }
+  } catch {
+    // continue to client fallbacks
+  }
+
+  // Step 2: Try public fast mirror APIs (fxtwitter / vxtwitter) to get user profile metadata
   let userProfile = null;
   try {
     onProgress?.("Kullanıcı bilgileri alınıyor...");
