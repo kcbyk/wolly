@@ -1,5 +1,19 @@
 export const MOCK_USERS = [
   {
+    "id": "Frame24069783",
+    "name": "Frame24069783",
+    "handle": "Frame24069783",
+    "avatar": "https://api.dicebear.com/7.x/identicon/svg?seed=Frame24069783",
+    "bio": "@Frame24069783 Sotwe Medyaları",
+    "verified": true,
+    "badgeType": "blue",
+    "stats": {
+      "followers": 5000,
+      "following": 150,
+      "posts": 6
+    }
+  },
+  {
     "id": "Quee828",
     "name": "Quee828",
     "handle": "Quee828",
@@ -98,6 +112,132 @@ export const MOCK_USERS = [
 ];
 
 export const MOCK_POSTS = [
+  {
+    "id": "Frame24069783_1_1787472347",
+    "userId": "Frame24069783",
+    "content": "@Frame24069783 Video #1",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091421884290052096/vid/avc1/720x1112/fT9IckJ9zo4uMNpM.mp4?tag=29",
+        "poster": "",
+        "alt": "@Frame24069783 video"
+      }
+    ],
+    "stats": {
+      "likes": 150,
+      "replies": 15,
+      "retweets": 40,
+      "bookmarks": 25
+    }
+  },
+  {
+    "id": "Frame24069783_2_1787472347",
+    "userId": "Frame24069783",
+    "content": "@Frame24069783 Video #2",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2088896633580716032/vid/avc1/1280x720/SVpwAMl5QZJ3e2k6.mp4?tag=29",
+        "poster": "",
+        "alt": "@Frame24069783 video"
+      }
+    ],
+    "stats": {
+      "likes": 160,
+      "replies": 16,
+      "retweets": 42,
+      "bookmarks": 26
+    }
+  },
+  {
+    "id": "Frame24069783_3_1787472347",
+    "userId": "Frame24069783",
+    "content": "@Frame24069783 Video #3",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2086367324269953024/vid/avc1/608x1080/WspcwhiwUTFQ5L9O.mp4?tag=29",
+        "poster": "",
+        "alt": "@Frame24069783 video"
+      }
+    ],
+    "stats": {
+      "likes": 170,
+      "replies": 17,
+      "retweets": 44,
+      "bookmarks": 27
+    }
+  },
+  {
+    "id": "Frame24069783_4_1787472347",
+    "userId": "Frame24069783",
+    "content": "@Frame24069783 Video #4",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2083825773278834688/vid/avc1/720x1280/pMQXtZdeRsTH7uDx.mp4?tag=29",
+        "poster": "",
+        "alt": "@Frame24069783 video"
+      }
+    ],
+    "stats": {
+      "likes": 180,
+      "replies": 18,
+      "retweets": 46,
+      "bookmarks": 28
+    }
+  },
+  {
+    "id": "Frame24069783_5_1787472347",
+    "userId": "Frame24069783",
+    "content": "@Frame24069783 Video #5",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2081289083641376768/vid/avc1/720x1080/RTK7EkuhFRrWl9m5.mp4?tag=29",
+        "poster": "",
+        "alt": "@Frame24069783 video"
+      }
+    ],
+    "stats": {
+      "likes": 190,
+      "replies": 19,
+      "retweets": 48,
+      "bookmarks": 29
+    }
+  },
+  {
+    "id": "Frame24069783_6_1787472347",
+    "userId": "Frame24069783",
+    "content": "@Frame24069783 Video #6",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2078874806276034560/vid/avc1/720x1280/RzE-PzQHsKpOzvUO.mp4?tag=29",
+        "poster": "",
+        "alt": "@Frame24069783 video"
+      }
+    ],
+    "stats": {
+      "likes": 200,
+      "replies": 20,
+      "retweets": 50,
+      "bookmarks": 30
+    }
+  },
   {
     "id": "Quee828_1_1787472253",
     "userId": "Quee828",
