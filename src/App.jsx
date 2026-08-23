@@ -37,20 +37,9 @@ function MainFeed() {
   if (activeTab === "vertical") {
     return (
       <div className="fixed inset-0 bg-black text-slate-100 font-sans overflow-hidden">
-        
-        {/* Floating Back Button */}
-        <div className="fixed top-4 left-4 z-50">
-          <button
-            onClick={() => setActiveTab("all")}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white text-xs font-bold backdrop-blur-md shadow-2xl transition-all cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Akış</span>
-          </button>
-        </div>
 
-        {/* Full-screen Vertical Feed */}
-        <VerticalFeed />
+        {/* Full-screen Vertical Feed — top bar is inside VerticalFeed */}
+        <VerticalFeed onBack={() => setActiveTab("all")} />
 
         {/* Global Modals & Overlays */}
         <MediaLightbox />

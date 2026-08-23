@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Play, Volume2, VolumeX, Download } from "lucide-react";
+import { Play, Volume2, VolumeX, Download, ArrowLeft } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { downloadMedia } from "../utils/formatters";
 
@@ -60,7 +60,6 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
     setProgress((video.currentTime / video.duration) * 100);
   };
 
-  // Seek to position from clientX
   const seekToX = (clientX) => {
     const bar = progressBarRef.current;
     const video = videoRef.current;
@@ -71,7 +70,6 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
     setProgress(pos * 100);
   };
 
-  // ── MOUSE drag ──
   const onMouseDown = (e) => {
     e.stopPropagation();
     const video = videoRef.current;
@@ -79,13 +77,10 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
     video?.pause();
     setIsSeeking(true);
     seekToX(e.clientX);
-
     const onMouseMove = (ev) => seekToX(ev.clientX);
     const onMouseUp = () => {
       setIsSeeking(false);
-      if (wasPlayingRef.current) {
-        video?.play().then(() => setIsPlaying(true)).catch(() => {});
-      }
+      if (wasPlayingRef.current) video?.play().then(() => setIsPlaying(true)).catch(() => {});
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
@@ -93,9 +88,8 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
     window.addEventListener("mouseup", onMouseUp);
   };
 
-  // ── TOUCH drag ──
   const onTouchStart = (e) => {
-    e.stopPropagation();   // critical: prevent scroll-snap from firing
+    e.stopPropagation();
     const video = videoRef.current;
     wasPlayingRef.current = !video?.paused;
     video?.pause();
@@ -111,9 +105,7 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
   const onTouchEnd = (e) => {
     e.stopPropagation();
     setIsSeeking(false);
-    if (wasPlayingRef.current) {
-      videoRef.current?.play().then(() => setIsPlaying(true)).catch(() => {});
-    }
+    if (wasPlayingRef.current) videoRef.current?.play().then(() => setIsPlaying(true)).catch(() => {});
   };
 
   const handleDownload = async (e) => {
@@ -148,19 +140,19 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
         className="absolute inset-0 w-full h-full object-contain bg-black"
       />
 
-      {/* Center play icon when paused */}
+      {/* Pause icon */}
       {!isPlaying && !isSeeking && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-16 h-16 rounded-full bg-black/60 border border-white/20 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-black/40 flex items-center justify-center">
             <Play className="w-7 h-7 fill-white text-white ml-1" />
           </div>
         </div>
       )}
 
-      {/* Seek time indicator while dragging */}
+      {/* Seek time popup */}
       {isSeeking && videoRef.current?.duration && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-          <div className="px-4 py-2 rounded-xl bg-black/80 border border-white/20 text-white font-mono text-lg font-bold backdrop-blur-md">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30">
+          <div className="px-5 py-2.5 rounded-2xl bg-black/70 text-white font-mono text-2xl font-bold backdrop-blur-md">
             {(() => {
               const t = (progress / 100) * (videoRef.current?.duration || 0);
               const m = Math.floor(t / 60);
@@ -171,30 +163,34 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
         </div>
       )}
 
-      {/* Top-right controls */}
+      {/* ── Mute & Download — top right, ghost style ── */}
       <div
-        className="absolute top-14 right-4 flex flex-col gap-3 z-10"
+        className="absolute top-16 right-4 flex flex-col gap-2 z-20"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onToggleMute}
-          className="p-3 rounded-full bg-black/60 border border-white/20 text-white backdrop-blur-md shadow-lg active:scale-90 transition-transform"
+          className="w-10 h-10 flex items-center justify-center rounded-full text-white transition-all active:scale-90"
+          style={{ background: "rgba(0,0,0,0.35)" }}
         >
-          {isMuted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5" />}
+          {isMuted
+            ? <VolumeX className="w-5 h-5 text-white/90" />
+            : <Volume2 className="w-5 h-5 text-white/90" />}
         </button>
 
         <button
           onClick={handleDownload}
-          className="p-3 rounded-full bg-black/60 border border-white/20 text-white backdrop-blur-md shadow-lg active:scale-90 transition-transform"
+          className="w-10 h-10 flex items-center justify-center rounded-full text-white transition-all active:scale-90"
+          style={{ background: "rgba(0,0,0,0.35)" }}
         >
-          <Download className="w-5 h-5" />
+          <Download className="w-5 h-5 text-white/90" />
         </button>
       </div>
 
-      {/* Bottom info + progress */}
+      {/* ── Bottom: user + caption + seekbar ── */}
       <div
-        className="absolute bottom-0 left-0 right-0 px-4 pb-6 pt-16 flex flex-col gap-2 z-10"
-        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 40%, transparent)" }}
+        className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-20 flex flex-col gap-2 z-20"
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 50%, transparent)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2">
@@ -204,46 +200,43 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
             referrerPolicy="no-referrer"
             className="w-7 h-7 rounded-full object-cover ring-1 ring-white/30"
           />
-          <span className="text-sm font-bold text-white">@{user.handle}</span>
+          <span className="text-sm font-semibold text-white drop-shadow">@{user.handle}</span>
         </div>
 
         {post.content && (
-          <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
-            {post.content}
-          </p>
+          <p className="text-xs text-white/80 leading-relaxed line-clamp-2">{post.content}</p>
         )}
 
-        {/* ── Sürüklenebilir progress bar ── */}
+        {/* Drag-to-seek progress bar */}
         <div
           ref={progressBarRef}
-          className="relative w-full cursor-pointer select-none"
-          style={{ padding: "10px 0", marginTop: 4 }} // geniş touch alanı
+          className="relative w-full cursor-pointer select-none mt-1"
+          style={{ padding: "10px 0" }}
           onMouseDown={onMouseDown}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Track */}
-          <div className={`w-full rounded-full bg-white/20 transition-all ${isSeeking ? "h-2" : "h-1"}`}>
-            {/* Fill */}
+          <div className={`w-full rounded-full bg-white/25 transition-all duration-150 ${isSeeking ? "h-1.5" : "h-0.5"}`}>
             <div
               className="h-full bg-white rounded-full pointer-events-none"
               style={{ width: `${progress}%` }}
             />
           </div>
-          {/* Thumb dot */}
-          <div
-            className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-lg pointer-events-none transition-opacity ${isSeeking ? "opacity-100" : "opacity-0"}`}
-            style={{ left: `calc(${progress}% - 7px)` }}
-          />
+          {isSeeking && (
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-lg pointer-events-none"
+              style={{ left: `calc(${progress}% - 6px)` }}
+            />
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default function VerticalFeed() {
+export default function VerticalFeed({ onBack }) {
   const { posts } = useApp();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -276,33 +269,71 @@ export default function VerticalFeed() {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full overflow-y-scroll"
-      style={{
-        height: "100dvh",
-        scrollSnapType: "y mandatory",
-        scrollBehavior: "auto",
-        WebkitOverflowScrolling: "touch",
-        overscrollBehavior: "none",
-      }}
-    >
-      {videoPosts.map((post, idx) => (
-        <div
-          key={post.id}
-          style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+    <div className="relative w-full" style={{ height: "100dvh" }}>
+
+      {/* ── TikTok-style transparent top bar ── */}
+      <div
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4"
+        style={{
+          paddingTop: "env(safe-area-inset-top, 12px)",
+          paddingBottom: "12px",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)",
+          pointerEvents: "none",          // tüm bar geçirgen — sadece buton alanı tıklanabilir
+        }}
+      >
+        {/* Geri butonu */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="w-9 h-9 flex items-center justify-center rounded-full text-white active:scale-90 transition-transform"
+            style={{ background: "rgba(0,0,0,0.30)", pointerEvents: "auto" }}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* Merkez: sayaç */}
+        <span
+          className="text-xs text-white/70 font-medium select-none"
+          style={{ pointerEvents: "none" }}
         >
-          <VerticalVideoCard
-            post={post}
-            isActive={activeIndex === idx}
-            isMuted={isMuted}
-            onToggleMute={(e) => {
-              e?.stopPropagation?.();
-              setIsMuted((m) => !m);
-            }}
-          />
-        </div>
-      ))}
+          {activeIndex + 1} / {videoPosts.length}
+        </span>
+
+        {/* Sağ boşluk dengeleme */}
+        <div className="w-9 h-9" />
+      </div>
+
+      {/* ── Scrollable feed ── */}
+      <div
+        ref={containerRef}
+        className="w-full overflow-y-scroll"
+        style={{
+          height: "100dvh",
+          scrollSnapType: "y mandatory",
+          scrollBehavior: "auto",
+          WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "none",
+        }}
+      >
+        {videoPosts.map((post, idx) => (
+          <div
+            key={post.id}
+            style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
+          >
+            <VerticalVideoCard
+              post={post}
+              isActive={activeIndex === idx}
+              isMuted={isMuted}
+              onToggleMute={(e) => {
+                e?.stopPropagation?.();
+                setIsMuted((m) => !m);
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
     </div>
   );
 }
