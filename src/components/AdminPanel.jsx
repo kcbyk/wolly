@@ -224,6 +224,28 @@ export default function AdminPanel({ onBack }) {
     p.userId?.toLowerCase().includes(manageSearch.toLowerCase())
   );
 
+  const bookmarkletCode = typeof window !== "undefined"
+    ? `javascript:(function(){try{var v=Array.from(document.querySelectorAll("video")).map(function(x){return x.src||(x.querySelector("source")?x.querySelector("source").src:"");}).filter(Boolean);var html=document.documentElement.innerHTML;var m=html.match(/https:\\/\\/[^"'\\s\\\\<>]+\\.mp4[^"'\\s\\\\<>]*/g)||[];var mp4s=m.map(function(u){return u.replace(/\\\\u0026/g,"&").replace(/\\\\/g,"");});var all=Array.from(new Set(v.concat(mp4s))).filter(function(u){return u.indexOf("twimg.com")!==-1||u.indexOf(".mp4")!==-1;});if(all.length===0){alert("Sayfada video bulunamadi! Lutfen sayfayi asagi kaydirip tekrar deneyin.");return;}var user=location.pathname.replace(/^\\/+/,"").split("/")[0].split("?")[0]||"sotwe_user";var payload=encodeURIComponent(JSON.stringify({user:user,videos:all}));window.location.href="${window.location.origin}/#import="+payload;}catch(e){alert("Hata: "+e.message);}})();`
+    : `javascript:(function(){alert("Wolly Importer");})();`;
+
+  const handleCopyBookmarklet = () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(bookmarkletCode);
+      } else {
+        const temp = document.createElement("textarea");
+        temp.value = bookmarkletCode;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+      }
+      showToast("Yer imi kodu panoya kopyalandı! 📋");
+    } catch {
+      showToast("Lütfen kutudaki kodu manuel kopyalayın.", "info");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-slate-100 font-sans pb-16">
       
@@ -233,7 +255,7 @@ export default function AdminPanel({ onBack }) {
           <div className="flex items-center gap-3">
             {onBack && (
               <button
-                onClick={onBack}
+                onClick={handleBack}
                 className="p-2 rounded-full hover:bg-white/10 text-white transition-colors cursor-pointer"
                 title="Siteye Dön"
               >
@@ -574,12 +596,7 @@ export default function AdminPanel({ onBack }) {
                 <span className="text-xs font-bold text-slate-300 font-mono">Yer İmi Kodu:</span>
                 <button
                   type="button"
-                  onClick={() => {
-                    const origin = typeof window !== "undefined" ? window.location.origin : "https://wolly.vercel.app";
-                    const code = `javascript:(function(){try{var v=Array.from(document.querySelectorAll("video")).map(function(x){return x.src||(x.querySelector("source")?x.querySelector("source").src:"");}).filter(Boolean);var html=document.documentElement.innerHTML;var m=html.match(/https:\\/\\/[^"'\\s\\\\<>]+\\.mp4[^"'\\s\\\\<>]*/g)||[];var mp4s=m.map(function(u){return u.replace(/\\\\u0026/g,"&").replace(/\\\\/g,"");});var all=Array.from(new Set(v.concat(mp4s))).filter(function(u){return u.indexOf("twimg.com")!==-1||u.indexOf(".mp4")!==-1;});if(all.length===0){alert("Sayfada video bulunamadi! Lutfen sayfayi asagi kaydirip tekrar deneyin.");return;}var user=location.pathname.replace(/^\\/+/,"").split("/")[0].split("?")[0]||"sotwe_user";var payload=encodeURIComponent(JSON.stringify({user:user,videos:all}));window.location.href="${origin}/#import="+payload;}catch(e){alert("Hata: "+e.message);}})();`;
-                    navigator.clipboard.writeText(code);
-                    showToast("Yer imi kodu panoya kopyalandı! 📋");
-                  }}
+                  onClick={handleCopyBookmarklet}
                   className="px-4 py-2 rounded-xl bg-white hover:bg-slate-200 text-black text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-lg active:scale-95"
                 >
                   <Copy className="w-3.5 h-3.5" />
@@ -590,7 +607,7 @@ export default function AdminPanel({ onBack }) {
               <textarea
                 readOnly
                 rows={4}
-                value={`javascript:(function(){try{var v=Array.from(document.querySelectorAll("video")).map(function(x){return x.src||(x.querySelector("source")?x.querySelector("source").src:"");}).filter(Boolean);var html=document.documentElement.innerHTML;var m=html.match(/https:\\/\\/[^"'\\s\\\\<>]+\\.mp4[^"'\\s\\\\<>]*/g)||[];var mp4s=m.map(function(u){return u.replace(/\\\\u0026/g,"&").replace(/\\\\/g,"");});var all=Array.from(new Set(v.concat(mp4s))).filter(function(u){return u.indexOf("twimg.com")!==-1||u.indexOf(".mp4")!==-1;});if(all.length===0){alert("Sayfada video bulunamadi! Lutfen sayfayi asagi kaydirip tekrar deneyin.");return;}var user=location.pathname.replace(/^\\/+/,"").split("/")[0].split("?")[0]||"sotwe_user";var payload=encodeURIComponent(JSON.stringify({user:user,videos:all}));window.location.href="${typeof window !== "undefined" ? window.location.origin : "https://wolly.vercel.app"}/#import="+payload;}catch(e){alert("Hata: "+e.message);}})();`}
+                value={bookmarkletCode}
                 className="w-full p-3 rounded-xl bg-[#0d0d0d] border border-white/10 text-slate-300 font-mono text-[11px] select-all focus:outline-none resize-none"
               />
             </div>

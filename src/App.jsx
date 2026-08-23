@@ -109,7 +109,12 @@ function MainFeed() {
   if (activeTab === "admin") {
     return (
       <>
-        <AdminPanel onBack={() => setActiveTab("all")} />
+        <AdminPanel
+          onBack={() => {
+            window.location.hash = "";
+            setActiveTab("all");
+          }}
+        />
         <MediaLightbox />
         <UserProfileModal />
         <Toast />
