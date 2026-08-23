@@ -6,13 +6,14 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
- * Fetch posts from Supabase (defaults to fetching all available posts up to 5000)
+ * Fetch posts from Supabase ordered by Algorithm Score & Freshness
  */
 export async function getPostsFromSupabase(page = 0, pageSize = 5000, userId = null) {
   try {
     let query = supabase
       .from('posts')
       .select('*')
+      .order('score', { ascending: false, nullsFirst: false })
       .order('inserted_at', { ascending: false });
 
     if (pageSize > 0) {
@@ -37,6 +38,7 @@ export async function getPostsFromSupabase(page = 0, pageSize = 5000, userId = n
       createdAt: p.created_at || "Yeni",
       mediaType: p.media_type || "video",
       media: p.media || [],
+      score: p.score || 0,
       stats: p.stats || { likes: 100, replies: 10, retweets: 20, bookmarks: 15 }
     }));
   } catch (err) {

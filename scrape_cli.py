@@ -261,7 +261,14 @@ async def scrape_profile(username, max_target=0):
         # 1. Doğrudan Supabase Buluta Yükle
         upload_to_supabase(user, posts)
         
-        # 2. mockData.js güncelle (Yerel yedek için)
+        # 2. Otomatik Pre-Ranking Motorunu Çalıştır (Tüm videoları puanla ve sırala)
+        try:
+            from ranking_engine import run_ranking_engine
+            run_ranking_engine(verbose=False)
+        except Exception as re_err:
+            print(f"[-] Ranking engine uyarısı: {re_err}")
+        
+        # 3. mockData.js güncelle (Yerel yedek için)
         mockdata_path = os.path.join("src", "data", "mockData.js")
         if os.path.exists(mockdata_path):
             with open(mockdata_path, "r", encoding="utf-8") as f:
