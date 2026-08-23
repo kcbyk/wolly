@@ -36,34 +36,21 @@ function MainFeed() {
   // 1. Dikey Video Tam Ekran Görünümü (Üst Bar Komple Yok)
   if (activeTab === "vertical") {
     return (
-      <div className="min-h-screen bg-black text-slate-100 flex flex-col font-sans selection:bg-[#212121] selection:text-white relative">
+      <div className="fixed inset-0 bg-black text-slate-100 font-sans overflow-hidden">
         
-        {/* Floating Mobile/Tablet Back Button */}
-        <div className="fixed top-4 left-4 z-50 md:hidden">
+        {/* Floating Back Button */}
+        <div className="fixed top-4 left-4 z-50">
           <button
             onClick={() => setActiveTab("all")}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#141414]/90 hover:bg-[#212121] border border-white/15 text-white text-xs font-bold backdrop-blur-md shadow-2xl transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-black/60 hover:bg-black/80 border border-white/20 text-white text-xs font-bold backdrop-blur-md shadow-2xl transition-all cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Akış</span>
           </button>
         </div>
 
-        {/* Main Vertical Layout */}
-        <div className="max-w-7xl mx-auto w-full flex-1 flex justify-center gap-6 px-3 sm:px-6 py-4">
-          
-          {/* Left Sidebar (Desktop Menu for quick return) */}
-          <SidebarLeft 
-            isOpenMobile={mobileMenuOpen} 
-            onCloseMobile={() => setMobileMenuOpen(false)} 
-          />
-
-          {/* Pure Vertical Video Stream */}
-          <main className="flex-1 min-w-0 flex flex-col items-center justify-center">
-            <VerticalFeed />
-          </main>
-
-        </div>
+        {/* Full-screen Vertical Feed */}
+        <VerticalFeed />
 
         {/* Global Modals & Overlays */}
         <MediaLightbox />
