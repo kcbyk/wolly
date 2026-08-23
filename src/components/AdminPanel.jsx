@@ -42,6 +42,12 @@ export default function AdminPanel({ onBack }) {
   // Manage search
   const [manageSearch, setManageSearch] = useState("");
 
+  // Tweet URL import state
+  const [tweetUrl, setTweetUrl] = useState("");
+  const [tweetImporting, setTweetImporting] = useState(false);
+  const [tweetResult, setTweetResult] = useState(null);
+  const [tweetError, setTweetError] = useState("");
+
   const totalVideos = posts.filter(p => p.mediaType === "video" || p.media?.some(m => m.type === "video")).length;
   const detectedUsername = extractUsername(profileUrl);
 
@@ -191,8 +197,62 @@ export default function AdminPanel({ onBack }) {
     showToast("Video başarıyla eklendi! 🎬");
   };
 
+  // 5b. Tweet URL -> Otomatik Video Import (fxtwitter)
+  const handleTweetUrlImport = async (e) => {
+    e?.preventDefault();
+    const url = tweetUrl.trim();
+    if (!url) {
+      showToast("Lütfen bir tweet URL'si girin!", "error");
+      return;
+    }
+
+    setTweetImporting(true);
+    setTweetResult(null);
+    setTweetError("");
+
+    try {
+      // Sunucu üzerinden fxtwitter API'sini çağır
+      const apiUrl = `/api/tweet?url=${encodeURIComponent(url)}`;
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+
+      if (data.success && data.post) {
+        setTweetResult(data);
+        showToast("Video bulundu! Siteye eklemek için onaylayın. ✅");
+      } else {
+        setTweetError(data.error || "Bu tweet'te video bulunamadı.");
+        showToast(data.error || "Video bulunamadı.", "error");
+      }
+    } catch (err) {
+      setTweetError("Bağlantı hatası: " + err.message);
+      showToast("Bağlantı hatası.", "error");
+    } finally {
+      setTweetImporting(false);
+    }
+  };
+
+  const handleTweetResultApply = () => {
+    if (!tweetResult?.post) return;
+    const post = tweetResult.post;
+    const user = post.user || {
+      id: post.userId,
+      name: post.userId,
+      handle: post.userId,
+      avatar: `https://unavatar.io/twitter/${post.userId}`,
+      verified: false,
+      badgeType: "none",
+      stats: { followers: 0, following: 0, posts: 1 }
+    };
+    importScrapedData([post], user, false);
+    setTweetResult(null);
+    setTweetUrl("");
+    setTweetError("");
+    showToast("Video siteye eklendi! 🎬");
+  };
+
   // 6. Backup Export/Import
   const handleExportBackup = () => {
+
     const data = { posts, users, exportedAt: new Date().toISOString(), version: "1.0" };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -330,6 +390,18 @@ export default function AdminPanel({ onBack }) {
           </button>
 
           <button
+            onClick={() => setActiveTab("tweet")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 cursor-pointer ${
+              activeTab === "tweet"
+                ? "bg-white text-black shadow-lg"
+                : "bg-[#141414] text-slate-300 hover:text-white border border-white/10"
+            }`}
+          >
+            <ExternalLink className="w-4 h-4" />
+            <span>🔗 Tweet URL Ekle</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("manage")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 cursor-pointer ${
               activeTab === "manage"
@@ -341,6 +413,7 @@ export default function AdminPanel({ onBack }) {
             <span>Veritabanı & Yönetim ({posts.length})</span>
           </button>
         </div>
+
 
         {/* ── MAIN TAB: EXTRACTOR ── */}
         {activeTab === "extractor" && (
@@ -809,6 +882,125 @@ export default function AdminPanel({ onBack }) {
                   })
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: TWEET URL EKLE ── */}
+        {activeTab === "tweet" && (
+          <div className="flex flex-col gap-6">
+            <div className="glass-card rounded-2xl p-6 flex flex-col gap-5 border border-white/10 bg-[#141414]">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <ExternalLink className="w-5 h-5 text-white" />
+                  Tweet URL'den Video Çek
+                </h2>
+                <p className="text-xs text-slate-400">
+                  Sotwe veya Twitter'dan herhangi bir tweet URL'sini yapıştırın. Sunucu HD video URL'sini otomatik bulur.
+                </p>
+              </div>
+
+              {/* Info box */}
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-slate-300">
+                <Smartphone className="w-4 h-4 text-white shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-white mb-1">📱 Mobilden Nasıl Kullanılır?</p>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-400">
+                    <li>Sotwe'de bir video postuna tıkla</li>
+                    <li>Adres çubuğundaki URL'yi kopyala</li>
+                    <li>Aşağıya yapıştır ve "Video Çek" butonuna bas</li>
+                    <li>Otomatik eklenir! 🎉</li>
+                  </ol>
+                  <p className="mt-2 text-slate-500 text-[10px]">Desteklenen: sotwe.com • twitter.com • x.com • vxtwitter.com</p>
+                </div>
+              </div>
+
+              {/* URL Input */}
+              <form onSubmit={handleTweetUrlImport} className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={tweetUrl}
+                    onChange={(e) => { setTweetUrl(e.target.value); setTweetResult(null); setTweetError(""); }}
+                    placeholder="https://www.sotwe.com/AbbeyVelvett/status/1234567890"
+                    className="w-full px-4 py-3.5 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-white font-mono"
+                    disabled={tweetImporting}
+                  />
+                  {tweetUrl && (
+                    <button
+                      type="button"
+                      onClick={() => { setTweetUrl(""); setTweetResult(null); setTweetError(""); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+                    >
+                      Temizle
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={tweetImporting || !tweetUrl.trim()}
+                  className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white text-black font-bold text-sm transition-all hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+                >
+                  {tweetImporting ? (
+                    <><RefreshCw className="w-4 h-4 animate-spin" /><span>Çekiliyor...</span></>
+                  ) : (
+                    <><Download className="w-4 h-4" /><span>Video Çek</span></>
+                  )}
+                </button>
+              </form>
+
+              {/* Error */}
+              {tweetError && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  <span>{tweetError}</span>
+                </div>
+              )}
+
+              {/* Success Preview */}
+              {tweetResult?.post && (
+                <div className="flex flex-col gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-green-400">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Video bulundu! Siteye eklemek için onayla.</span>
+                  </div>
+
+                  {/* Video preview */}
+                  {tweetResult.post.media?.[0]?.type === "video" && (
+                    <div className="relative rounded-xl overflow-hidden bg-black aspect-video max-w-xs">
+                      <video
+                        src={tweetResult.post.media[0].url}
+                        controls
+                        muted
+                        playsInline
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+
+                  <div className="text-xs text-slate-400">
+                    <p className="font-semibold text-white">@{tweetResult.author || tweetResult.post.userId}</p>
+                    <p className="line-clamp-2">{tweetResult.post.content}</p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleTweetResultApply}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-black font-bold text-sm hover:bg-slate-200 transition-all cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      Siteye Ekle
+                    </button>
+                    <button
+                      onClick={() => { setTweetResult(null); setTweetUrl(""); }}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#141414] border border-white/10 text-slate-300 font-semibold text-sm hover:text-white transition-all cursor-pointer"
+                    >
+                      İptal
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

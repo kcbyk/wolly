@@ -1,31 +1,34 @@
-import requests
+import requests, json, sys, re
 
+sys.stdout.reconfigure(encoding='utf-8')
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'Accept-Language': 'en-US,en;q=0.5',
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/javascript, */*",
+    "Accept-Language": "tr-TR,tr;q=0.9,en;q=0.8",
+    "Referer": "https://twitter.com/",
+    "Origin": "https://twitter.com"
 }
 
-url = 'https://syndication.twitter.com/srv/timeline-profile/screen-name/abbeyvelvett'
-try:
-    r = requests.get(url, headers=headers, timeout=10)
-    print("STATUS:", r.status_code, "LEN:", len(r.text))
-    if r.status_code == 200:
-        print("SAMPLE:", r.text[:300])
-        if '__NEXT_DATA__' in r.text:
-            print("FOUND __NEXT_DATA__!")
-            import json, re
-            match = re.search(r'<script id="__NEXT_DATA__" type="application/json">([^<]+)</script>', r.text)
-            if match:
-                data = json.loads(match.group(1))
-                timeline = data['props']['pageProps']['timeline']
-                entries = timeline['entries']
-                print(f"TOTAL TWEETS FOUND: {len(entries)}")
-                for e in entries[:3]:
-                    tweet = e['content']['tweet']
-                    print("TWEET ID:", tweet['id_str'], "TEXT:", tweet.get('full_text') or tweet.get('text'))
-                    media = tweet.get('extended_entities', {}).get('media', []) or tweet.get('entities', {}).get('media', [])
-                    for m in media:
-                        print("  MEDIA TYPE:", m.get('type'), "INFO:", m.get('video_info', {}).get('variants', [{}])[0].get('url', 'no-url')[:80])
-except Exception as e:
-    print("ERROR:", e)
+USERNAME = "AbbeyVelvett"
+
+# Twitter syndication API — used for embedded timelines (no auth needed)
+print("=== TWITTER SYNDICATION TIMELINE API ===")
+endpoints = [
+    f"https://syndication.twitter.com/srv/timeline-profile/screen-name/{USERNAME}?count=20&withLinkPreviews=true",
+    f"https://cdn.syndication.twimg.com/timeline/profile?screen_name={USERNAME}&count=20&with_replies=false",
+    f"https://syndication.twitter.com/timeline/profile?screen_name={USERNAME}&count=20&lang=tr",
+]
+for ep in endpoints:
+    try:
+        r = requests.get(ep, headers=headers, timeout=10)
+        print(f"\n{ep[:80]}")
+        print(f"  Status: {r.status_code}, Len: {len(r.text)}")
+        if r.status_code == 200 and len(r.text) > 100:
+            # Look for video/mp4 URLs
+            mp4s = re.findall(r'https://[^\s"\'\\<>]+\.mp4[^\s"\'\\<>]*', r.text)
+            tids = re.findall(r'"id_str"\s*:\s*"(\d{15,20})"', r.text)
+            print(f"  MP4s: {mp4s[:3]}")
+            print(f"  Tweet IDs: {tids[:5]}")
+            print(f"  Preview: {r.text[:400]}")
+    except Exception as e:
+        print(f"  ERROR: {e}")
