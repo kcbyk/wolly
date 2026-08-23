@@ -3,7 +3,7 @@ import { Play, Volume2, VolumeX, Download, ArrowLeft } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { downloadMedia } from "../utils/formatters";
 
-const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNear, isMuted }) {
+const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNear, isNext, isMuted }) {
   const { users } = useApp();
   const videoRef = useRef(null);
   const progressBarRef = useRef(null);
@@ -22,15 +22,17 @@ const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNe
 
   const videoMedia = post.media?.find((m) => m.type === "video");
 
-  // Play / pause when card active state changes
+  // Instant play as soon as card becomes active
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     if (isActive) {
       video.muted = isMuted;
+      // Immediate play trigger with zero latency
       const p = video.play();
-      if (p) {
+      if (p !== undefined) {
         p.then(() => setIsPlaying(true)).catch(() => {
+          // If unmuted autoplay blocked by browser policy, fallback to muted instant play
           video.muted = true;
           video.play().then(() => setIsPlaying(true)).catch(() => {});
         });
@@ -42,7 +44,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNe
     }
   }, [isActive, isMuted]);
 
-  // Sync mute
+  // Sync mute state immediately
   useEffect(() => {
     const video = videoRef.current;
     if (video) video.muted = isMuted;
@@ -59,7 +61,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNe
     }
   };
 
-  // 120fps direct DOM progress update without triggering React re-renders
+  // 120fps direct DOM progress update
   const handleTimeUpdate = () => {
     const video = videoRef.current;
     if (!video || !video.duration || isSeeking) return;
@@ -144,7 +146,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNe
       }}
       onClick={togglePlay}
     >
-      {/* Virtualization: Only render active and adjacent video tags, poster image for others */}
+      {/* Pre-buffering: active + adjacent cards are mounted with preload="auto" for instant start */}
       {isNear ? (
         <video
           ref={videoRef}
@@ -153,7 +155,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNe
           loop
           muted={isMuted}
           playsInline
-          preload={isActive ? "auto" : "metadata"}
+          preload={isActive || isNext ? "auto" : "metadata"}
           referrerPolicy="no-referrer"
           disableRemotePlayback
           disablePictureInPicture
@@ -173,7 +175,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNe
         />
       )}
 
-      {/* Pause indicator */}
+      {/* Center play icon when paused */}
       {!isPlaying && !isSeeking && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-16 h-16 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
@@ -221,7 +223,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNe
           </p>
         )}
 
-        {/* Drag-to-seek progress bar with hardware-accelerated direct DOM updates */}
+        {/* Drag-to-seek progress bar */}
         <div
           ref={progressBarRef}
           className="relative w-full cursor-pointer select-none mt-1.5"
@@ -264,7 +266,7 @@ export default function VerticalFeed({ onBack }) {
   const currentPost = videoPosts[activeIndex];
   const currentVideoMedia = currentPost?.media?.find((m) => m.type === "video");
 
-  // 120fps optimized scroll detection using rAF debounce
+  // Instant scroll snap detection: updates active video on threshold pass
   const handleScroll = useCallback(() => {
     if (isScrollingRef.current) return;
     isScrollingRef.current = true;
@@ -272,7 +274,9 @@ export default function VerticalFeed({ onBack }) {
       const container = containerRef.current;
       if (container) {
         const index = Math.round(container.scrollTop / window.innerHeight);
-        setActiveIndex((prev) => (prev !== index ? Math.max(0, Math.min(index, videoPosts.length - 1)) : prev));
+        if (index >= 0 && index < videoPosts.length) {
+          setActiveIndex(index);
+        }
       }
       isScrollingRef.current = false;
     });
@@ -304,7 +308,7 @@ export default function VerticalFeed({ onBack }) {
   return (
     <div className="relative w-full h-full bg-black overflow-hidden hardware-accelerated">
 
-      {/* ── Transparent Top Bar (Pure Icons, No Backgrounds) ── */}
+      {/* ── Transparent Top Bar ── */}
       <header
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4"
         style={{
@@ -353,7 +357,7 @@ export default function VerticalFeed({ onBack }) {
         </div>
       </header>
 
-      {/* ── 120fps Fullscreen Scrollable feed ── */}
+      {/* ── Snappy Fast TikTok Scrollable feed ── */}
       <div
         ref={containerRef}
         className="w-full overflow-y-scroll no-scrollbar hardware-accelerated"
@@ -362,7 +366,7 @@ export default function VerticalFeed({ onBack }) {
           scrollSnapType: "y mandatory",
           scrollBehavior: "auto",
           WebkitOverflowScrolling: "touch",
-          overscrollBehavior: "none",
+          overscrollBehaviorY: "none",
           touchAction: "pan-y",
         }}
       >
@@ -379,7 +383,8 @@ export default function VerticalFeed({ onBack }) {
             <VerticalVideoCard
               post={post}
               isActive={activeIndex === idx}
-              isNear={Math.abs(activeIndex - idx) <= 1}
+              isNear={Math.abs(activeIndex - idx) <= 2}
+              isNext={idx === activeIndex + 1}
               isMuted={isMuted}
             />
           </div>
