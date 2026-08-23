@@ -116,7 +116,7 @@ function VerticalVideoCard({ post, isActive, isMuted }) {
       style={{ height: "100dvh", flexShrink: 0 }}
       onClick={togglePlay}
     >
-      {/* Video with Remote Playback / Cast disabled */}
+      {/* Video */}
       <video
         ref={videoRef}
         src={videoMedia.url}
@@ -138,8 +138,8 @@ function VerticalVideoCard({ post, isActive, isMuted }) {
       {/* Pause indicator */}
       {!isPlaying && !isSeeking && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-16 h-16 rounded-full bg-black/50 border border-white/20 flex items-center justify-center shadow-2xl backdrop-blur-sm">
-            <Play className="w-7 h-7 fill-white text-white ml-1" />
+          <div className="w-16 h-16 rounded-full bg-black/40 flex items-center justify-center backdrop-blur-[2px]">
+            <Play className="w-8 h-8 fill-white text-white ml-1 drop-shadow-lg" />
           </div>
         </div>
       )}
@@ -147,7 +147,7 @@ function VerticalVideoCard({ post, isActive, isMuted }) {
       {/* Seek time popup indicator */}
       {isSeeking && videoRef.current?.duration && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30">
-          <div className="px-5 py-2.5 rounded-2xl bg-black/80 text-white font-mono text-2xl font-bold backdrop-blur-md border border-white/20 shadow-2xl">
+          <div className="px-5 py-2.5 rounded-2xl bg-black/75 text-white font-mono text-2xl font-bold backdrop-blur-md drop-shadow-2xl">
             {(() => {
               const t = (progress / 100) * (videoRef.current?.duration || 0);
               const m = Math.floor(t / 60);
@@ -161,7 +161,7 @@ function VerticalVideoCard({ post, isActive, isMuted }) {
       {/* Bottom info + seekbar */}
       <div
         className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-20 flex flex-col gap-2 z-20"
-        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 45%, transparent)" }}
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 45%, transparent)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2">
@@ -169,16 +169,16 @@ function VerticalVideoCard({ post, isActive, isMuted }) {
             src={user.avatar}
             alt={user.name}
             referrerPolicy="no-referrer"
-            className="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 shadow-md"
+            className="w-8 h-8 rounded-full object-cover ring-1 ring-white/30 drop-shadow-md"
           />
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-white leading-tight drop-shadow">{user.name}</span>
-            <span className="text-[11px] text-slate-300 drop-shadow">@{user.handle}</span>
+            <span className="text-sm font-bold text-white leading-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">{user.name}</span>
+            <span className="text-[11px] text-slate-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">@{user.handle}</span>
           </div>
         </div>
 
         {post.content && (
-          <p className="text-xs text-white/90 leading-relaxed line-clamp-2 drop-shadow mt-0.5">
+          <p className="text-xs text-white/95 leading-relaxed line-clamp-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] mt-0.5">
             {post.content}
           </p>
         )}
@@ -258,33 +258,30 @@ export default function VerticalFeed({ onBack }) {
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
 
-      {/* ── Unified Sleek Top Bar ── */}
+      {/* ── Transparent Top Bar (No Backgrounds on buttons) ── */}
       <header
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4"
         style={{
           paddingTop: "max(env(safe-area-inset-top), 14px)",
           paddingBottom: "14px",
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 65%, transparent 100%)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)",
+          pointerEvents: "none",
         }}
       >
-        {/* Left: Geri Tuşu */}
+        {/* Left: Geri Tuşu (Pure Icon + Text, No Background) */}
         {onBack && (
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 hover:bg-black/80 border border-white/15 text-white text-xs font-semibold backdrop-blur-md shadow-lg active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 p-2 text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] active:scale-90 hover:opacity-80 transition-all cursor-pointer select-none"
+            style={{ pointerEvents: "auto" }}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
             <span>Akış</span>
           </button>
         )}
 
-        {/* Center: Sayaç */}
-        <div className="px-3 py-1 rounded-full bg-black/40 border border-white/10 text-[11px] font-semibold text-white/90 backdrop-blur-md shadow-sm">
-          {activeIndex + 1} / {videoPosts.length}
-        </div>
-
-        {/* Right: Ses & İndirme Butonları */}
-        <div className="flex items-center gap-2">
+        {/* Right: Ses & İndirme Butonları (Pure Icons, No Background) */}
+        <div className="flex items-center gap-3" style={{ pointerEvents: "auto" }}>
           {/* Mute/Unmute */}
           <button
             onClick={(e) => {
@@ -292,12 +289,12 @@ export default function VerticalFeed({ onBack }) {
               setIsMuted((m) => !m);
             }}
             title={isMuted ? "Sesi Aç" : "Sesi Kapat"}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 border border-white/15 text-white backdrop-blur-md shadow-lg active:scale-90 transition-all cursor-pointer"
+            className="p-2 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] active:scale-90 hover:opacity-80 transition-all cursor-pointer"
           >
             {isMuted ? (
-              <VolumeX className="w-4 h-4 text-red-400" />
+              <VolumeX className="w-6 h-6 text-red-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
             ) : (
-              <Volume2 className="w-4 h-4 text-white" />
+              <Volume2 className="w-6 h-6 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
             )}
           </button>
 
@@ -305,9 +302,9 @@ export default function VerticalFeed({ onBack }) {
           <button
             onClick={handleDownloadCurrent}
             title="Videoyu İndir"
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 border border-white/15 text-white backdrop-blur-md shadow-lg active:scale-90 transition-all cursor-pointer"
+            className="p-2 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] active:scale-90 hover:opacity-80 transition-all cursor-pointer"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-6 h-6 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
           </button>
         </div>
       </header>
