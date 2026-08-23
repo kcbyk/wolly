@@ -140,10 +140,29 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
           </p>
         )}
 
-        {/* Progress bar */}
-        <div className="w-full h-0.5 bg-white/20 rounded-full overflow-hidden mt-1">
+        {/* Progress bar — tıkla/dokun istediğin yere git */}
+        <div
+          className="w-full h-2 bg-white/20 rounded-full overflow-hidden mt-1 cursor-pointer active:scale-y-150 transition-transform"
+          onClick={(e) => {
+            e.stopPropagation();
+            const video = videoRef.current;
+            if (!video || !video.duration) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pos = (e.clientX - rect.left) / rect.width;
+            video.currentTime = Math.max(0, Math.min(1, pos)) * video.duration;
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            const video = videoRef.current;
+            if (!video || !video.duration) return;
+            const touch = e.changedTouches[0];
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pos = (touch.clientX - rect.left) / rect.width;
+            video.currentTime = Math.max(0, Math.min(1, pos)) * video.duration;
+          }}
+        >
           <div
-            className="h-full bg-white rounded-full"
+            className="h-full bg-white rounded-full pointer-events-none"
             style={{ width: `${progress}%`, transition: "width 0.1s linear" }}
           />
         </div>
