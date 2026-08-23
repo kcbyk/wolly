@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
-import { Play, Volume2, VolumeX, Download, ArrowLeft } from "lucide-react";
+import { Play, Volume2, VolumeX, Download, ArrowLeft, Loader2 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { downloadMedia } from "../utils/formatters";
 
 const VerticalVideoCard = memo(function VerticalVideoCard({ 
   post, 
   isActive, 
+  isNext,
   isNear, 
   isMuted, 
   onInView 
@@ -18,6 +19,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
   const progressThumbRef = useRef(null);
   const seekTimeRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
   const wasPlayingRef = useRef(false);
 
@@ -47,24 +49,37 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     return () => observer.disconnect();
   }, [post.id, onInView]);
 
-  // Autoplay when active, pause when inactive
+  // Instant zero-latency Autoplay when active, pause when inactive
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     if (isActive) {
       video.muted = isMuted;
-      const p = video.play();
-      if (p !== undefined) {
-        p.then(() => setIsPlaying(true)).catch(() => {
-          video.muted = true;
-          video.play().then(() => setIsPlaying(true)).catch(() => {});
-        });
+      // Start playback immediately
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setIsBuffering(false);
+          })
+          .catch(() => {
+            // Autoplay with sound blocked? Fallback to muted instant play
+            video.muted = true;
+            video.play()
+              .then(() => {
+                setIsPlaying(true);
+                setIsBuffering(false);
+              })
+              .catch(() => {});
+          });
       }
     } else {
       video.pause();
       video.currentTime = 0;
       setIsPlaying(false);
+      setIsBuffering(false);
     }
   }, [isActive, isMuted]);
 
@@ -171,7 +186,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
       }}
       onClick={togglePlay}
     >
-      {/* Mount <video> only for active or nearby card */}
+      {/* Mount & pre-buffer video for active and upcoming cards */}
       {isNear ? (
         <video
           ref={videoRef}
@@ -180,12 +195,16 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
           loop
           muted={isMuted}
           playsInline
-          preload={isActive ? "auto" : "metadata"}
+          autoPlay={isActive}
+          preload={isActive || isNext ? "auto" : "metadata"}
           referrerPolicy="no-referrer"
           disableRemotePlayback
           disablePictureInPicture
           controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
-          onPlay={() => setIsPlaying(true)}
+          onPlay={() => { setIsPlaying(true); setIsBuffering(false); }}
+          onPlaying={() => setIsBuffering(false)}
+          onWaiting={() => setIsBuffering(true)}
+          onCanPlay={() => setIsBuffering(false)}
           onPause={() => setIsPlaying(false)}
           onTimeUpdate={handleTimeUpdate}
           className="absolute inset-0 w-full h-full object-contain bg-black"
@@ -196,8 +215,17 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
         </div>
       )}
 
+      {/* Buffering indicator */}
+      {isBuffering && isActive && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+          <div className="p-3 rounded-full bg-black/60 backdrop-blur-sm border border-white/10">
+            <Loader2 className="w-8 h-8 text-white animate-spin" />
+          </div>
+        </div>
+      )}
+
       {/* Center play icon when paused */}
-      {!isPlaying && !isSeeking && (
+      {!isPlaying && !isSeeking && !isBuffering && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-16 h-16 rounded-full bg-black/60 text-white border border-white/20 flex items-center justify-center shadow-2xl">
             <Play className="w-7 h-7 fill-white ml-1 text-white" />
@@ -283,6 +311,26 @@ export default function VerticalFeed({ onBack }) {
     }
     return 0;
   });
+
+  // Pre-buffer next 3 upcoming videos in browser background
+  useEffect(() => {
+    const upcoming = videoPosts.slice(activeIndex + 1, activeIndex + 4);
+    const links = [];
+    upcoming.forEach((p) => {
+      const v = p.media?.find((m) => m.type === "video");
+      if (v?.url) {
+        const link = document.createElement("link");
+        link.rel = "prefetch";
+        link.as = "video";
+        link.href = v.url;
+        document.head.appendChild(link);
+        links.push(link);
+      }
+    });
+    return () => {
+      links.forEach((l) => l.remove());
+    };
+  }, [activeIndex, videoPosts]);
 
   // Callback when a card enters viewport via IntersectionObserver
   const handleInView = useCallback((postId) => {
@@ -402,7 +450,8 @@ export default function VerticalFeed({ onBack }) {
             key={post.id}
             post={post}
             isActive={activeIndex === idx}
-            isNear={Math.abs(activeIndex - idx) <= 1}
+            isNext={idx === activeIndex + 1}
+            isNear={Math.abs(activeIndex - idx) <= 2}
             isMuted={isMuted}
             onInView={handleInView}
           />
