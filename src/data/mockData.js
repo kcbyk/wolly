@@ -1,5 +1,19 @@
 export const MOCK_USERS = [
   {
+    "id": "Turk_ifsa355",
+    "name": "Turk_ifsa355",
+    "handle": "Turk_ifsa355",
+    "avatar": "https://api.dicebear.com/7.x/identicon/svg?seed=Turk_ifsa355",
+    "bio": "@Turk_ifsa355 Sotwe Medyaları",
+    "verified": true,
+    "badgeType": "blue",
+    "stats": {
+      "followers": 5000,
+      "following": 150,
+      "posts": 8
+    }
+  },
+  {
     "id": "AbbeyVelvett",
     "name": "AbbeyVelvett",
     "handle": "AbbeyVelvett",
@@ -28,6 +42,174 @@ export const MOCK_USERS = [
 ];
 
 export const MOCK_POSTS = [
+  {
+    "id": "Turk_ifsa355_1_1787468701",
+    "userId": "Turk_ifsa355",
+    "content": "@Turk_ifsa355 Video #1",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1951455496008880128/pu/vid/avc1/320x568/Hr_n1BrO7kq23SSV.mp4?tag=12",
+        "poster": "",
+        "alt": "@Turk_ifsa355 video"
+      }
+    ],
+    "stats": {
+      "likes": 150,
+      "replies": 15,
+      "retweets": 40,
+      "bookmarks": 25
+    }
+  },
+  {
+    "id": "Turk_ifsa355_2_1787468701",
+    "userId": "Turk_ifsa355",
+    "content": "@Turk_ifsa355 Video #2",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1951455146350661632/pu/vid/avc1/320x320/SKOZZA1ShKeknH1J.mp4?tag=12",
+        "poster": "",
+        "alt": "@Turk_ifsa355 video"
+      }
+    ],
+    "stats": {
+      "likes": 160,
+      "replies": 16,
+      "retweets": 42,
+      "bookmarks": 26
+    }
+  },
+  {
+    "id": "Turk_ifsa355_3_1787468701",
+    "userId": "Turk_ifsa355",
+    "content": "@Turk_ifsa355 Video #3",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1948535189702926337/pu/vid/avc1/320x560/SmkkbLMCyfZpbuJo.mp4?tag=12",
+        "poster": "",
+        "alt": "@Turk_ifsa355 video"
+      }
+    ],
+    "stats": {
+      "likes": 170,
+      "replies": 17,
+      "retweets": 44,
+      "bookmarks": 27
+    }
+  },
+  {
+    "id": "Turk_ifsa355_4_1787468701",
+    "userId": "Turk_ifsa355",
+    "content": "@Turk_ifsa355 Video #4",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1947425110975033344/pu/vid/avc1/700x1280/8Qtxv5j0kwJs9A9c.mp4?tag=12",
+        "poster": "",
+        "alt": "@Turk_ifsa355 video"
+      }
+    ],
+    "stats": {
+      "likes": 180,
+      "replies": 18,
+      "retweets": 46,
+      "bookmarks": 28
+    }
+  },
+  {
+    "id": "Turk_ifsa355_5_1787468701",
+    "userId": "Turk_ifsa355",
+    "content": "@Turk_ifsa355 Video #5",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1947420506275102721/pu/vid/avc1/480x852/LvlDKdS-IvjENyQg.mp4?tag=12",
+        "poster": "",
+        "alt": "@Turk_ifsa355 video"
+      }
+    ],
+    "stats": {
+      "likes": 190,
+      "replies": 19,
+      "retweets": 48,
+      "bookmarks": 29
+    }
+  },
+  {
+    "id": "Turk_ifsa355_6_1787468701",
+    "userId": "Turk_ifsa355",
+    "content": "@Turk_ifsa355 Video #6",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1947415527330111500/pu/vid/avc1/480x848/DqeU7EZfUz_lgXNd.mp4?tag=12",
+        "poster": "",
+        "alt": "@Turk_ifsa355 video"
+      }
+    ],
+    "stats": {
+      "likes": 200,
+      "replies": 20,
+      "retweets": 50,
+      "bookmarks": 30
+    }
+  },
+  {
+    "id": "Turk_ifsa355_7_1787468701",
+    "userId": "Turk_ifsa355",
+    "content": "@Turk_ifsa355 Video #7",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1947322305689911296/pu/vid/avc1/640x360/rRU5AMqott3LKh7q.mp4?tag=12",
+        "poster": "",
+        "alt": "@Turk_ifsa355 video"
+      }
+    ],
+    "stats": {
+      "likes": 210,
+      "replies": 21,
+      "retweets": 52,
+      "bookmarks": 31
+    }
+  },
+  {
+    "id": "Turk_ifsa355_8_1787468701",
+    "userId": "Turk_ifsa355",
+    "content": "@Turk_ifsa355 Video #8",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1947320625963343872/pu/vid/avc1/480x852/TozhWjqxzNSP-4Dm.mp4?tag=12",
+        "poster": "",
+        "alt": "@Turk_ifsa355 video"
+      }
+    ],
+    "stats": {
+      "likes": 220,
+      "replies": 22,
+      "retweets": 54,
+      "bookmarks": 32
+    }
+  },
   {
     "id": "AbbeyVelvett_1_1787468129",
     "userId": "AbbeyVelvett",
