@@ -1,5 +1,19 @@
 export const MOCK_USERS = [
   {
+    "id": "MehmetE17041046",
+    "name": "MehmetE17041046",
+    "handle": "MehmetE17041046",
+    "avatar": "https://api.dicebear.com/7.x/identicon/svg?seed=MehmetE17041046",
+    "bio": "@MehmetE17041046 Sotwe Medyaları",
+    "verified": true,
+    "badgeType": "blue",
+    "stats": {
+      "followers": 5000,
+      "following": 150,
+      "posts": 25
+    }
+  },
+  {
     "id": "murat65255229",
     "name": "murat65255229",
     "handle": "murat65255229",
@@ -126,6 +140,531 @@ export const MOCK_USERS = [
 ];
 
 export const MOCK_POSTS = [
+  {
+    "id": "MehmetE17041046_1_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #1",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091316959203688448/vid/avc1/720x1280/QnJogYttn-qJ9tGL.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 150,
+      "replies": 15,
+      "retweets": 40,
+      "bookmarks": 25
+    }
+  },
+  {
+    "id": "MehmetE17041046_2_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #2",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091315141014880257/vid/avc1/720x1280/ts9ftY8NrXfRp-MK.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 160,
+      "replies": 16,
+      "retweets": 42,
+      "bookmarks": 26
+    }
+  },
+  {
+    "id": "MehmetE17041046_3_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #3",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091306484608995328/vid/avc1/720x1280/qrzfO0KlER3whm1j.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 170,
+      "replies": 17,
+      "retweets": 44,
+      "bookmarks": 27
+    }
+  },
+  {
+    "id": "MehmetE17041046_4_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #4",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091306271127273472/vid/avc1/720x1282/PawBFsqYvvH9cpMf.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 180,
+      "replies": 18,
+      "retweets": 46,
+      "bookmarks": 28
+    }
+  },
+  {
+    "id": "MehmetE17041046_5_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #5",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091297453064548352/vid/avc1/476x848/rPub5D3eae5zKDL9.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 190,
+      "replies": 19,
+      "retweets": 48,
+      "bookmarks": 29
+    }
+  },
+  {
+    "id": "MehmetE17041046_6_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #6",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091297159354171392/vid/avc1/720x1234/Hk4hL8wmK5PzodGT.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 200,
+      "replies": 20,
+      "retweets": 50,
+      "bookmarks": 30
+    }
+  },
+  {
+    "id": "MehmetE17041046_7_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #7",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090934641683230721/vid/avc1/720x1088/y1IxOypRHraGZ4kv.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 210,
+      "replies": 21,
+      "retweets": 52,
+      "bookmarks": 31
+    }
+  },
+  {
+    "id": "MehmetE17041046_8_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #8",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091136557868519424/vid/avc1/464x848/j66KBjGoUZOL5fsB.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 220,
+      "replies": 22,
+      "retweets": 54,
+      "bookmarks": 32
+    }
+  },
+  {
+    "id": "MehmetE17041046_9_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #9",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091136102052614145/vid/avc1/464x848/R9LK6PWqCPE-16m_.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 230,
+      "replies": 23,
+      "retweets": 56,
+      "bookmarks": 33
+    }
+  },
+  {
+    "id": "MehmetE17041046_10_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #10",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091135760380354560/vid/avc1/464x848/yHsajzAQDvDR7zF1.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 240,
+      "replies": 24,
+      "retweets": 58,
+      "bookmarks": 34
+    }
+  },
+  {
+    "id": "MehmetE17041046_11_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #11",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091135436106199040/vid/avc1/464x848/dBbTj5HgDqnUXh67.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 250,
+      "replies": 25,
+      "retweets": 60,
+      "bookmarks": 35
+    }
+  },
+  {
+    "id": "MehmetE17041046_12_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #12",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091134969066160128/vid/avc1/464x848/ryMazgWnxDV5GnXj.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 260,
+      "replies": 26,
+      "retweets": 62,
+      "bookmarks": 36
+    }
+  },
+  {
+    "id": "MehmetE17041046_13_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #13",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090953314380713985/vid/avc1/720x1280/HWzBQFwae1K3Pm4r.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 270,
+      "replies": 27,
+      "retweets": 64,
+      "bookmarks": 37
+    }
+  },
+  {
+    "id": "MehmetE17041046_14_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #14",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090946970072272896/vid/avc1/720x1280/fjaDhbjJ1yyjRShh.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 280,
+      "replies": 28,
+      "retweets": 66,
+      "bookmarks": 38
+    }
+  },
+  {
+    "id": "MehmetE17041046_15_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #15",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090946682720559107/vid/avc1/360x640/aBn1fu9gQvkfEfim.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 290,
+      "replies": 29,
+      "retweets": 68,
+      "bookmarks": 39
+    }
+  },
+  {
+    "id": "MehmetE17041046_16_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #16",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090935286935019520/vid/avc1/464x848/3RmNEIZkpfUcWoRS.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 300,
+      "replies": 30,
+      "retweets": 70,
+      "bookmarks": 40
+    }
+  },
+  {
+    "id": "MehmetE17041046_17_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #17",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090935143678570496/vid/avc1/720x828/030R2NJo70kAXoAX.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 310,
+      "replies": 31,
+      "retweets": 72,
+      "bookmarks": 41
+    }
+  },
+  {
+    "id": "MehmetE17041046_18_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #18",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090935017341894657/vid/avc1/606x1080/k3PQZzaHrQi610mR.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 320,
+      "replies": 32,
+      "retweets": 74,
+      "bookmarks": 42
+    }
+  },
+  {
+    "id": "MehmetE17041046_19_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #19",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090934833547472897/vid/avc1/634x270/85Mo62HBb0KrTj-P.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 330,
+      "replies": 33,
+      "retweets": 76,
+      "bookmarks": 43
+    }
+  },
+  {
+    "id": "MehmetE17041046_20_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #20",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090934467946811392/vid/avc1/400x360/baYaOadhUBffRL_O.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 340,
+      "replies": 34,
+      "retweets": 78,
+      "bookmarks": 44
+    }
+  },
+  {
+    "id": "MehmetE17041046_21_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #21",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090934300938063873/vid/avc1/624x1280/z7Nd54CbJmsbzha5.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 350,
+      "replies": 35,
+      "retweets": 80,
+      "bookmarks": 45
+    }
+  },
+  {
+    "id": "MehmetE17041046_22_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #22",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090934150274351104/vid/avc1/720x1148/i9rhkTljfBfd89Og.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 360,
+      "replies": 36,
+      "retweets": 82,
+      "bookmarks": 46
+    }
+  },
+  {
+    "id": "MehmetE17041046_23_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #23",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090933882233229312/vid/avc1/480x856/Ckrpwcl6WDV8kDQa.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 370,
+      "replies": 37,
+      "retweets": 84,
+      "bookmarks": 47
+    }
+  },
+  {
+    "id": "MehmetE17041046_24_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #24",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090933627915771904/vid/avc1/320x568/puxVAHv9Ctoor9j8.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 380,
+      "replies": 38,
+      "retweets": 86,
+      "bookmarks": 48
+    }
+  },
+  {
+    "id": "MehmetE17041046_25_1787472994",
+    "userId": "MehmetE17041046",
+    "content": "@MehmetE17041046 Video #25",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090901901239877632/vid/avc1/720x1280/1_AKzkiArpwYRwJt.mp4?tag=14",
+        "poster": "",
+        "alt": "@MehmetE17041046 video"
+      }
+    ],
+    "stats": {
+      "likes": 390,
+      "replies": 39,
+      "retweets": 88,
+      "bookmarks": 49
+    }
+  },
   {
     "id": "murat65255229_1_1787472892",
     "userId": "murat65255229",
