@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
-import { Play, Volume2, VolumeX, Download, ArrowLeft, Loader2, Heart, Zap } from "lucide-react";
+import { Play, Volume2, VolumeX, Download, ArrowLeft, Loader2, Heart } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { downloadMedia } from "../utils/formatters";
 import { buildForYouFeed } from "../utils/algorithm";
-import { getAdaptiveVideoUrl, getInitialFastBlob, prewarmUpcomingVideos } from "../utils/chunkedStreamer";
 
 /* ─────────────────────────────────────────────
-   VerticalVideoCard  — Smart Chunked Stream Card
+   VerticalVideoCard  — Ultra-Clean Direct Stream
 ───────────────────────────────────────────── */
 const VerticalVideoCard = memo(function VerticalVideoCard({
   post,
@@ -24,14 +23,13 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
   const wasPlayingRef     = useRef(false);
   const lastTapRef        = useRef(0);
 
-  const [isPlaying,       setIsPlaying]       = useState(false);
-  const [isBuffering,     setIsBuffering]     = useState(false);
-  const [isSeeking,       setIsSeeking]       = useState(false);
-  const [showHeart,       setShowHeart]       = useState(false);
-  const [streamSrc,       setStreamSrc]       = useState(null);
+  const [isPlaying,    setIsPlaying]    = useState(false);
+  const [isBuffering,  setIsBuffering]  = useState(false);
+  const [isSeeking,    setIsSeeking]    = useState(false);
+  const [showHeart,    setShowHeart]    = useState(false);
 
-  const isLiked    = likes.includes(post.id);
-  const rawMediaUrl = getAdaptiveVideoUrl(post);
+  const isLiked   = likes.includes(post.id);
+  const videoMedia = post.media?.find((m) => m.type === "video");
 
   const user = users.find((u) => u.id === post.userId) || {
     name:   post.userId,
@@ -39,30 +37,19 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${post.userId}`,
   };
 
-  /* ── 512 KB Hızlı Başlatma Blob Kaynağını Bağla ── */
-  useEffect(() => {
-    let isMounted = true;
-    if (isNear && rawMediaUrl) {
-      getInitialFastBlob(rawMediaUrl).then((fastUrl) => {
-        if (isMounted && fastUrl) {
-          setStreamSrc(fastUrl);
-        }
-      });
-    }
-    return () => {
-      isMounted = false;
-    };
-  }, [isNear, rawMediaUrl]);
-
-  /* ── Oynatma motoru (Abort-safe) ── */
+  /* ── Doğrudan Native Oynatma Motoru ── */
   const safePlay = useCallback(async () => {
     const v = videoRef.current;
     if (!v) return;
+
     try {
       v.muted = isMuted;
-      await v.play();
-      setIsPlaying(true);
-      setIsBuffering(false);
+      const playPromise = v.play();
+      if (playPromise !== undefined) {
+        await playPromise;
+        setIsPlaying(true);
+        setIsBuffering(false);
+      }
     } catch (err) {
       if (err.name !== "AbortError") {
         try {
@@ -81,6 +68,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
+
     if (isActive) {
       safePlay();
     } else {
@@ -109,10 +97,15 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
       return;
     }
     lastTapRef.current = now;
+
     const v = videoRef.current;
     if (!v || isSeeking) return;
-    if (v.paused) safePlay();
-    else { v.pause(); setIsPlaying(false); }
+    if (v.paused) {
+      safePlay();
+    } else {
+      v.pause();
+      setIsPlaying(false);
+    }
   };
 
   /* ── Progress bar: DOM güncellemesi ── */
@@ -168,7 +161,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     setScrubPos(e.touches[0].clientX);
   };
 
-  if (!rawMediaUrl) return null;
+  if (!videoMedia || !videoMedia.url) return null;
 
   return (
     <div
@@ -176,14 +169,14 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
       style={{ height: "100dvh", scrollSnapAlign: "start", scrollSnapStop: "always", contain: "strict" }}
       onClick={handleCardClick}
     >
-      {/* ── Anlık koyu arka plan ── */}
-      <div className="absolute inset-0 w-full h-full bg-[#111] pointer-events-none" />
+      {/* ── Koyu AMOLED Arka Plan ── */}
+      <div className="absolute inset-0 w-full h-full bg-[#0a0a0a] pointer-events-none" />
 
-      {/* ── Smart Chunked Video Player ── */}
+      {/* ── Native Stream Video Player ── */}
       {isNear && (
         <video
           ref={videoRef}
-          src={streamSrc || rawMediaUrl}
+          src={videoMedia.url}
           loop
           muted={isMuted}
           playsInline
@@ -193,10 +186,11 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
           disableRemotePlayback
           disablePictureInPicture
           controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+          onLoadedData  ={() => { setIsBuffering(false); }}
+          onCanPlay     ={() => { setIsBuffering(false); }}
           onPlay        ={() => { setIsPlaying(true);  setIsBuffering(false); }}
           onPlaying     ={() => { setIsPlaying(true);  setIsBuffering(false); }}
           onWaiting     ={() => { if (!isSeeking) setIsBuffering(true); }}
-          onCanPlay     ={() => setIsBuffering(false)}
           onSeeked      ={() => { setIsBuffering(false); if (wasPlayingRef.current) safePlay(); }}
           onPause       ={() => setIsPlaying(false)}
           onTimeUpdate  ={handleTimeUpdate}
@@ -234,26 +228,19 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
         className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-16 flex flex-col gap-2 z-20 bg-gradient-to-t from-black/95 via-black/40 to-transparent"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Profil & Canlı Hızlı Akış Rozeti */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <img
-              src={user.avatar}
-              alt={user.name}
-              loading="lazy"
-              decoding="async"
-              referrerPolicy="no-referrer"
-              className="w-9 h-9 rounded-full object-cover ring-1 ring-white/20 shadow-md"
-            />
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-white leading-tight truncate">{user.name}</span>
-              <span className="text-[11px] text-slate-300 font-mono truncate">@{user.handle}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-mono">
-            <Zap className="w-3 h-3 fill-emerald-400" />
-            <span>Hızlı Akış</span>
+        {/* Profil */}
+        <div className="flex items-center gap-2.5">
+          <img
+            src={user.avatar}
+            alt={user.name}
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            className="w-9 h-9 rounded-full object-cover ring-1 ring-white/20 shadow-md"
+          />
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-bold text-white leading-tight truncate">{user.name}</span>
+            <span className="text-[11px] text-slate-300 font-mono truncate">@{user.handle}</span>
           </div>
         </div>
 
@@ -322,16 +309,6 @@ export default function VerticalFeed({ onBack }) {
     }
     return 0;
   });
-
-  /* ── Smart Chunk Pre-warm: Sıradaki 4 videonun ilk 512 KB'ını RAM'e yükle ── */
-  useEffect(() => {
-    const upcomingUrls = videoPosts
-      .slice(activeIndex + 1, activeIndex + 5)
-      .map((p) => getAdaptiveVideoUrl(p))
-      .filter(Boolean);
-
-    prewarmUpcomingVideos(upcomingUrls);
-  }, [activeIndex, videoPosts]);
 
   /* ── Scroll pozisyonundan aktif kart tespiti ── */
   const handleScroll = useCallback(() => {
