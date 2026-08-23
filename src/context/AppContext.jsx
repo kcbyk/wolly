@@ -10,7 +10,12 @@ export function AppProvider({ children }) {
     try {
       const saved = localStorage.getItem("sotwe_scraped_posts");
       const parsed = saved ? JSON.parse(saved) : [];
-      return (parsed && parsed.length > 0) ? parsed : MOCK_POSTS;
+      if (parsed && parsed.length > 0) {
+        const idSet = new Set(parsed.map(p => p.id));
+        const newFromMock = MOCK_POSTS.filter(p => !idSet.has(p.id));
+        return [...newFromMock, ...parsed];
+      }
+      return MOCK_POSTS;
     } catch {
       return MOCK_POSTS;
     }
@@ -20,7 +25,12 @@ export function AppProvider({ children }) {
     try {
       const saved = localStorage.getItem("sotwe_scraped_users");
       const parsed = saved ? JSON.parse(saved) : [];
-      return (parsed && parsed.length > 0) ? parsed : MOCK_USERS;
+      if (parsed && parsed.length > 0) {
+        const idSet = new Set(parsed.map(u => u.id));
+        const newFromMock = MOCK_USERS.filter(u => !idSet.has(u.id));
+        return [...newFromMock, ...parsed];
+      }
+      return MOCK_USERS;
     } catch {
       return MOCK_USERS;
     }

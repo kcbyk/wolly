@@ -1,5 +1,5 @@
 """
-Sotwe One-Click Profile Scraper & Auto-Deploy CLI
+Sotwe Infinite Profile Scraper & Auto-Deploy CLI
 Kullanım: python scrape_cli.py
 Veya: python scrape_cli.py <kullanici_adi_veya_link>
 """
@@ -23,9 +23,9 @@ def extract_handle(input_str):
     return clean.strip()
 
 def run_git_push(username, video_count):
-    print("\n" + "="*50)
-    print("[*] Otomatik GitHub Push Başlatılıyor...")
-    print("="*50)
+    print("\n" + "="*60)
+    print("[*] Otomatik GitHub Push & Vercel Deploy Başlatılıyor...")
+    print("="*60)
     
     try:
         # 1. git add
@@ -40,17 +40,19 @@ def run_git_push(username, video_count):
         # 3. git push
         subprocess.run(["git", "push"], check=True)
         print("[+] 'git push' başarıyla tamamlandı! 🚀")
-        print("[🎉] Vercel deploy otomatik başladı. Site 1-2 dakika içinde güncellenecektir!")
+        print("\n[🎉] Tebrikler! Vercel otomatik deploy başlattı.")
+        print("[🌐] Siteniz 1-2 dakika içinde canlıda güncellenecektir!")
     except subprocess.CalledProcessError as e:
-        print(f"[-] Git hatası: {e}")
+        print(f"[-] Git push uyarısı/hatası: {e}")
     except Exception as e:
         print(f"[-] Beklenmeyen hata: {e}")
 
-async def scrape_profile(username):
+async def scrape_profile(username, max_target=0):
     url = f"https://www.sotwe.com/{username}?lang=tr"
-    print(f"\n[*] Sotwe profili taranıyor: @{username}")
-    print(f"[*] Hedef URL: {url}")
-    print("[*] Chrome tarayıcı açılıyor (Cloudflare korumasını geçmek için)...")
+    print(f"\n[*] Hedef Profil: @{username}")
+    print(f"[*] URL: {url}")
+    print(f"[*] Hedef Video Sayısı: {'Maksimum / Sayfa Bitene Kadar' if max_target <= 0 else max_target}")
+    print("[*] Chrome tarayıcısı açılıyor...")
     
     user_data_dir = os.path.join(os.getcwd(), ".chrome_user_data")
     os.makedirs(user_data_dir, exist_ok=True)
@@ -69,35 +71,59 @@ async def scrape_profile(username):
         except Exception as e:
             print(f"[-] Sayfa yükleme uyarısı: {e}")
             
-        print("[*] Sayfa açıldı. Cloudflare doğrulanıyor ve içerik bekleniyor...")
+        print("[*] Sayfa açıldı. Cloudflare doğrulanıyor...")
         await asyncio.sleep(5)
         
-        # Scroll down to load videos
-        print("[*] Sayfa aşağı kaydırılarak tüm HD videolar yükleniyor...")
-        for i in range(12):
-            await page.evaluate("window.scrollBy(0, 2000)")
-            print(f"    -> Kaydırma {i+1}/12...")
+        # Akıllı Dinamik Sonsuz Kaydırma
+        print("\n[*] 📜 Akıllı kaydırma başlatıldı (Yeni videolar geldikçe taranıyor)...")
+        
+        last_count = 0
+        no_new_video_rounds = 0
+        max_scroll_rounds = 50 if max_target <= 0 else max(20, max_target // 2)
+        
+        clean_mp4s = []
+        seen = set()
+        
+        for round_idx in range(1, max_scroll_rounds + 1):
+            await page.evaluate("window.scrollBy(0, 2200)")
             await asyncio.sleep(1.2)
             
-        html = await page.content()
+            # Ara kontrol
+            html_chunk = await page.content()
+            raw_matches = re.findall(r'https://[^\s"\'\\]+\.mp4[^\s"\'\\]*', html_chunk)
+            
+            for m in raw_matches:
+                v_url = m.replace('\\u0026', '&').replace('\\', '')
+                if ('video-s.twimg.com' in v_url or 'video.twimg.com' in v_url or '.mp4' in v_url) and v_url not in seen:
+                    seen.add(v_url)
+                    clean_mp4s.append(v_url)
+                    
+            current_count = len(clean_mp4s)
+            print(f"    -> Tur {round_idx}/{max_scroll_rounds}: Şu ana kadar {current_count} adet video bulundu.")
+            
+            # Hedefe ulaşıldı mı?
+            if max_target > 0 and current_count >= max_target:
+                print(f"[+] Belirttiğiniz {max_target} video hedefine ulaşıldı!")
+                break
+                
+            # Sayfa sonuna gelindi mi? (3 tur üst üste yeni video gelmediyse)
+            if current_count == last_count:
+                no_new_video_rounds += 1
+                if no_new_video_rounds >= 4 and round_idx >= 8:
+                    print("[*] Sayfanın sonuna gelindi (Artık yeni video yüklenmiyor).")
+                    break
+            else:
+                no_new_video_rounds = 0
+                
+            last_count = current_count
+            
         await browser.close()
         print("[+] Tarayıcı kapatıldı.")
         
-        # Extract MP4s
-        mp4_regex = r'https://[^\s"\'\\]+\.mp4[^\s"\'\\]*'
-        raw_matches = re.findall(mp4_regex, html)
-        clean_mp4s = []
-        seen = set()
-        for m in raw_matches:
-            v_url = m.replace('\\u0026', '&').replace('\\', '')
-            if ('video-s.twimg.com' in v_url or 'video.twimg.com' in v_url or '.mp4' in v_url) and v_url not in seen:
-                seen.add(v_url)
-                clean_mp4s.append(v_url)
-                
-        print(f"\n[+] Toplam {len(clean_mp4s)} adet HD MP4 video bulundu!")
+        print(f"\n[+] 🎉 TOPLAM {len(clean_mp4s)} ADET HD MP4 VIDEO ÇEKİLDİ!")
         
         if len(clean_mp4s) == 0:
-            print("[-] Bu profilde video bulunamadı veya sayfa henüz yüklenmedi.")
+            print("[-] Bu profilde video bulunamadı.")
             return
             
         now_ts = int(time.time())
@@ -150,6 +176,7 @@ async def scrape_profile(username):
             cur_users = json.loads(users_match.group(1)) if users_match else []
             cur_posts = json.loads(posts_match.group(1)) if posts_match else []
             
+            # Bu kullanıcının eski gönderilerini yenilerle değiştir veya üstüne ekle
             merged_users = [user] + [u for u in cur_users if u["id"] != username]
             merged_posts = posts + [p for p in cur_posts if p["userId"] != username]
             
@@ -157,15 +184,15 @@ async def scrape_profile(username):
             with open(mockdata_path, "w", encoding="utf-8") as f:
                 f.write(new_code)
                 
-            print(f"[+] mockData.js güncellendi! Toplam video sayısı: {len(merged_posts)}")
+            print(f"[+] mockData.js güncellendi! Veritabanındaki toplam video sayısı: {len(merged_posts)}")
             
             # Otomatik Git Push & Deploy
             run_git_push(username, len(posts))
 
 def main():
-    print("\n" + "="*50)
-    print(" 🎬 WOLLY SOTWE OTOMATIK VIDEO CEKICI & DEPLOYER")
-    print("="*50)
+    print("\n" + "="*60)
+    print(" 🎬 WOLLY SOTWE SINIRSIZ VIDEO CEKICI & AUTO-DEPLOY")
+    print("="*60)
     
     target = ""
     if len(sys.argv) >= 2 and sys.argv[1].strip():
@@ -186,7 +213,15 @@ def main():
         print("[-] Geçersiz kullanıcı adı veya URL!")
         sys.exit(1)
         
-    asyncio.run(scrape_profile(handle))
+    limit_input = ""
+    try:
+        limit_input = input("👉 Kaç video çekilsin? [Tüm videolar için boş bırakıp Enter'a basın]: ").strip()
+    except KeyboardInterrupt:
+        sys.exit(0)
+        
+    max_target = int(limit_input) if limit_input.isdigit() else 0
+    
+    asyncio.run(scrape_profile(handle, max_target))
 
 if __name__ == "__main__":
     main()
