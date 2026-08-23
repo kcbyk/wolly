@@ -1,5 +1,19 @@
 export const MOCK_USERS = [
   {
+    "id": "Quee828",
+    "name": "Quee828",
+    "handle": "Quee828",
+    "avatar": "https://api.dicebear.com/7.x/identicon/svg?seed=Quee828",
+    "bio": "@Quee828 Sotwe Medyaları",
+    "verified": true,
+    "badgeType": "blue",
+    "stats": {
+      "followers": 5000,
+      "following": 150,
+      "posts": 32
+    }
+  },
+  {
     "id": "sponzapilot123",
     "name": "sponzapilot123",
     "handle": "sponzapilot123",
@@ -84,6 +98,678 @@ export const MOCK_USERS = [
 ];
 
 export const MOCK_POSTS = [
+  {
+    "id": "Quee828_1_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #1",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091123566523621376/vid/avc1/714x1280/7vXQH5vRrsuPj3XH.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 150,
+      "replies": 15,
+      "retweets": 40,
+      "bookmarks": 25
+    }
+  },
+  {
+    "id": "Quee828_2_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #2",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091123703178211328/vid/avc1/720x1280/zmHLGmmi-Q-xAsKu.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 160,
+      "replies": 16,
+      "retweets": 42,
+      "bookmarks": 26
+    }
+  },
+  {
+    "id": "Quee828_3_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #3",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091134595966115840/vid/avc1/720x1206/XCDgH1pcdL1OZTqn.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 170,
+      "replies": 17,
+      "retweets": 44,
+      "bookmarks": 27
+    }
+  },
+  {
+    "id": "Quee828_4_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #4",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091134969439555584/vid/avc1/714x1280/mihM-h5CVZPoPY7b.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 180,
+      "replies": 18,
+      "retweets": 46,
+      "bookmarks": 28
+    }
+  },
+  {
+    "id": "Quee828_5_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #5",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091135453936209921/vid/avc1/720x1280/AuAhkTXl6Wh0dItr.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 190,
+      "replies": 19,
+      "retweets": 48,
+      "bookmarks": 29
+    }
+  },
+  {
+    "id": "Quee828_6_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #6",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090898213842587648/vid/avc1/720x1280/WU3sv_x7cIL7rBMg.mp4?tag=14",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 200,
+      "replies": 20,
+      "retweets": 50,
+      "bookmarks": 30
+    }
+  },
+  {
+    "id": "Quee828_7_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #7",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2084805696642547712/vid/avc1/720x1280/06UvU0-k-H919Pxb.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 210,
+      "replies": 21,
+      "retweets": 52,
+      "bookmarks": 31
+    }
+  },
+  {
+    "id": "Quee828_8_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #8",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090964269256892416/vid/avc1/360x640/Z_wl05PwEFuEeVDD.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 220,
+      "replies": 22,
+      "retweets": 54,
+      "bookmarks": 32
+    }
+  },
+  {
+    "id": "Quee828_9_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #9",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2077099934998757376/vid/avc1/720x1280/HucjuZkFTcrMh6Bj.mp4?tag=14",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 230,
+      "replies": 23,
+      "retweets": 56,
+      "bookmarks": 33
+    }
+  },
+  {
+    "id": "Quee828_10_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #10",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2076016538394460160/vid/avc1/720x1278/1bGuvBuyXyGq3Y5C.mp4?tag=14",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 240,
+      "replies": 24,
+      "retweets": 58,
+      "bookmarks": 34
+    }
+  },
+  {
+    "id": "Quee828_11_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #11",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1364865020966895616/pu/vid/720x1280/P8SeB_ajkRFSKap4.mp4?tag=10",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 250,
+      "replies": 25,
+      "retweets": 60,
+      "bookmarks": 35
+    }
+  },
+  {
+    "id": "Quee828_12_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #12",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1364864845397561345/pu/vid/352x640/zNeqskuIdkUIeoOU.mp4?tag=10",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 260,
+      "replies": 26,
+      "retweets": 62,
+      "bookmarks": 36
+    }
+  },
+  {
+    "id": "Quee828_13_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #13",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1364864193732698113/pu/vid/720x1280/vAPLQteWvw_v032g.mp4?tag=10",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 270,
+      "replies": 27,
+      "retweets": 64,
+      "bookmarks": 37
+    }
+  },
+  {
+    "id": "Quee828_14_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #14",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1364864031455145985/pu/vid/404x720/b0vTm-l6OnItDMju.mp4?tag=10",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 280,
+      "replies": 28,
+      "retweets": 66,
+      "bookmarks": 38
+    }
+  },
+  {
+    "id": "Quee828_15_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #15",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090382628822056960/vid/avc1/720x1020/wZf8pg3QMG_AM_ZI.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 290,
+      "replies": 29,
+      "retweets": 68,
+      "bookmarks": 39
+    }
+  },
+  {
+    "id": "Quee828_16_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #16",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090383243820314626/vid/avc1/720x1280/pIVCCzXehDZcXkRi.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 300,
+      "replies": 30,
+      "retweets": 70,
+      "bookmarks": 40
+    }
+  },
+  {
+    "id": "Quee828_17_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #17",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090383354717675520/vid/avc1/720x1280/stXRykUz7kg3Avo_.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 310,
+      "replies": 31,
+      "retweets": 72,
+      "bookmarks": 41
+    }
+  },
+  {
+    "id": "Quee828_18_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #18",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090383811020193792/vid/avc1/720x1280/V1zoXZ-KyiF3UPtJ.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 320,
+      "replies": 32,
+      "retweets": 74,
+      "bookmarks": 42
+    }
+  },
+  {
+    "id": "Quee828_19_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #19",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090384785134800896/vid/avc1/720x1020/u7hvUlRgF5jB0vTH.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 330,
+      "replies": 33,
+      "retweets": 76,
+      "bookmarks": 43
+    }
+  },
+  {
+    "id": "Quee828_20_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #20",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090001147033473024/vid/avc1/480x864/DiSzHm5q81a1Ny9n.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 340,
+      "replies": 34,
+      "retweets": 78,
+      "bookmarks": 44
+    }
+  },
+  {
+    "id": "Quee828_21_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #21",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2077456504291028992/vid/avc1/720x960/qWgir08on9fTPP_F.mp4?tag=14",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 350,
+      "replies": 35,
+      "retweets": 80,
+      "bookmarks": 45
+    }
+  },
+  {
+    "id": "Quee828_22_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #22",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2082768594782277633/vid/avc1/480x852/mF3KVf7prCmBPoY0.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 360,
+      "replies": 36,
+      "retweets": 82,
+      "bookmarks": 46
+    }
+  },
+  {
+    "id": "Quee828_23_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #23",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2088611244882149376/vid/avc1/720x1280/1Val2-D_2EemH0o-.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 370,
+      "replies": 37,
+      "retweets": 84,
+      "bookmarks": 47
+    }
+  },
+  {
+    "id": "Quee828_24_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #24",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2088614709230505984/vid/avc1/720x1280/mGMSbiw-tF86Bn9t.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 380,
+      "replies": 38,
+      "retweets": 86,
+      "bookmarks": 48
+    }
+  },
+  {
+    "id": "Quee828_25_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #25",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2083048587617849344/vid/avc1/720x1280/OttvkUM5ctbBh5js.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 390,
+      "replies": 39,
+      "retweets": 88,
+      "bookmarks": 49
+    }
+  },
+  {
+    "id": "Quee828_26_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #26",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2080948661052153856/vid/avc1/352x640/DhVYY6si3Z6hMr9A.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 400,
+      "replies": 40,
+      "retweets": 90,
+      "bookmarks": 50
+    }
+  },
+  {
+    "id": "Quee828_27_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #27",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2088239032631283712/vid/avc1/512x384/BANMJVSKYy2xt6vo.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 410,
+      "replies": 41,
+      "retweets": 92,
+      "bookmarks": 51
+    }
+  },
+  {
+    "id": "Quee828_28_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #28",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2088239837488820224/vid/avc1/1920x1080/bcCzq3C7clURZ3ds.mp4?tag=29",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 420,
+      "replies": 42,
+      "retweets": 94,
+      "bookmarks": 52
+    }
+  },
+  {
+    "id": "Quee828_29_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #29",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/2071532055498768384/pu/vid/avc1/720x1280/ErDuzY_ZLJcyuv9R.mp4?tag=12",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 430,
+      "replies": 43,
+      "retweets": 96,
+      "bookmarks": 53
+    }
+  },
+  {
+    "id": "Quee828_30_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #30",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/2071532660036395008/pu/vid/avc1/360x640/arPR1zRPJuHn4CSb.mp4?tag=12",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 440,
+      "replies": 44,
+      "retweets": 98,
+      "bookmarks": 54
+    }
+  },
+  {
+    "id": "Quee828_31_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #31",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2025145943486611456/vid/avc1/540x540/qrcT8TLsw_zWCc3H.mp4?tag=14",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 450,
+      "replies": 45,
+      "retweets": 100,
+      "bookmarks": 55
+    }
+  },
+  {
+    "id": "Quee828_32_1787472253",
+    "userId": "Quee828",
+    "content": "@Quee828 Video #32",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/1957843674911391745/pu/vid/avc1/464x848/KcI4TCVphqIs8XOY.mp4?tag=12",
+        "poster": "",
+        "alt": "@Quee828 video"
+      }
+    ],
+    "stats": {
+      "likes": 460,
+      "replies": 46,
+      "retweets": 102,
+      "bookmarks": 56
+    }
+  },
   {
     "id": "sponzapilot123_1_1787472101",
     "userId": "sponzapilot123",
