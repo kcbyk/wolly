@@ -83,14 +83,6 @@ export function AppProvider({ children }) {
     localStorage.setItem("sotwe_following", JSON.stringify(following));
   }, [following]);
 
-  // Helper to import scraped batch data
-  const importScrapedData = (newPosts = [], newUsers = []) => {
-    setPosts(newPosts);
-    setUsers(newUsers);
-    localStorage.setItem("sotwe_scraped_posts", JSON.stringify(newPosts));
-    localStorage.setItem("sotwe_scraped_users", JSON.stringify(newUsers));
-    showToast(`${newPosts.length} adet yeni video & medya yüklendi! 🎬`);
-  };
 
   // Trigger Toast Notification
   const showToast = (message, type = "success") => {
@@ -290,6 +282,48 @@ export function AppProvider({ children }) {
     showToast("Gönderiniz başarıyla paylaşıldı! 🚀");
   };
 
+  // Scraper and Data Management helpers
+  const importScrapedData = (newPosts = [], newUsers = null, replaceExisting = false) => {
+    if (replaceExisting) {
+      setPosts(newPosts);
+      if (newUsers) setUsers(Array.isArray(newUsers) ? newUsers : [newUsers]);
+    } else {
+      setPosts((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const filteredNew = newPosts.filter((p) => !existingIds.has(p.id));
+        return [...filteredNew, ...prev];
+      });
+      if (newUsers) {
+        setUsers((prev) => {
+          const userArr = Array.isArray(newUsers) ? newUsers : [newUsers];
+          const existingIds = new Set(prev.map((u) => u.id));
+          const filteredNew = userArr.filter((u) => !existingIds.has(u.id));
+          return [...prev, ...filteredNew];
+        });
+      }
+    }
+    showToast(`${newPosts.length} gönderi ve profil başarıyla eklendi! 🎉`);
+  };
+
+  const deletePost = (postId) => {
+    setPosts((prev) => prev.filter((p) => p.id !== postId));
+    showToast("Gönderi silindi! 🗑️");
+  };
+
+  const deleteUserPosts = (userId) => {
+    setPosts((prev) => prev.filter((p) => p.userId !== userId));
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    showToast(`@${userId} kullanıcısının tüm verileri silindi! 🗑️`);
+  };
+
+  const resetToDefaultData = () => {
+    setPosts(MOCK_POSTS);
+    setUsers(MOCK_USERS);
+    localStorage.removeItem("sotwe_scraped_posts");
+    localStorage.removeItem("sotwe_scraped_users");
+    showToast("Tüm veriler varsayılan haline sıfırlandı! 🔄");
+  };
+
   // Lightbox helpers
   const openLightbox = (mediaList, activeIndex = 0, post = null) => {
     setLightboxData({ mediaList, activeIndex, post });
@@ -322,6 +356,9 @@ export function AppProvider({ children }) {
         users,
         setUsers,
         importScrapedData,
+        deletePost,
+        deleteUserPosts,
+        resetToDefaultData,
         bookmarks,
         likes,
         retweets,

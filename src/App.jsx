@@ -1,16 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AppProvider, useApp } from "./context/AppContext";
 import Navbar from "./components/Navbar";
 import SidebarLeft from "./components/SidebarLeft";
 import SidebarRight from "./components/SidebarRight";
 import PostCard from "./components/PostCard";
 import VerticalFeed from "./components/VerticalFeed";
+import AdminPanel from "./components/AdminPanel";
 import MediaLightbox from "./components/MediaLightbox";
 import UserProfileModal from "./components/UserProfileModal";
 import CommentsModal from "./components/CommentsModal";
 import CreatePostModal from "./components/CreatePostModal";
 import Toast from "./components/Toast";
-import { Search, X, ArrowLeft } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 function MainFeed() {
   const { 
@@ -24,35 +25,55 @@ function MainFeed() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Sync hash routing (e.g. /#admin or /#vertical)
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace("#", "");
+      if (hash === "admin") setActiveTab("admin");
+      else if (hash === "vertical") setActiveTab("vertical");
+      else if (hash === "all" || hash === "") setActiveTab("all");
+    };
+    handleHash();
+    window.addEventListener("hashchange", handleHash);
+    return () => window.removeEventListener("hashchange", handleHash);
+  }, [setActiveTab]);
+
   // Search filtering
   const filteredPosts = posts.filter((post) => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase().trim();
-    const matchContent = post.content.toLowerCase().includes(query);
-    const matchUser = post.userId.toLowerCase().includes(query);
+    const matchContent = post.content?.toLowerCase().includes(query);
+    const matchUser = post.userId?.toLowerCase().includes(query);
     return matchContent || matchUser;
   });
 
-  // 1. Dikey Video Tam Ekran Görünümü (Üst Bar Komple Yok)
+  // 1. Admin & Otomasyon Paneli
+  if (activeTab === "admin") {
+    return (
+      <>
+        <AdminPanel onBack={() => setActiveTab("all")} />
+        <MediaLightbox />
+        <UserProfileModal />
+        <Toast />
+      </>
+    );
+  }
+
+  // 2. Dikey Video Tam Ekran Görünümü
   if (activeTab === "vertical") {
     return (
       <div className="fixed inset-0 bg-black text-slate-100 font-sans overflow-hidden">
-
-        {/* Full-screen Vertical Feed — top bar is inside VerticalFeed */}
         <VerticalFeed onBack={() => setActiveTab("all")} />
-
-        {/* Global Modals & Overlays */}
         <MediaLightbox />
         <UserProfileModal />
         <CommentsModal />
         <CreatePostModal />
         <Toast />
-
       </div>
     );
   }
 
-  // 2. Normal Akış Görünümü (Üst Bar Dahil)
+  // 3. Normal Akış Görünümü
   return (
     <div className="min-h-screen bg-black text-slate-100 flex flex-col font-sans selection:bg-[#212121] selection:text-white">
       

@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, RectangleVertical, X } from "lucide-react";
+import { Home, RectangleVertical, Sparkles, X } from "lucide-react";
 import { useApp } from "../context/AppContext";
 
 export default function SidebarLeft({ isOpenMobile, onCloseMobile }) {
@@ -12,6 +12,7 @@ export default function SidebarLeft({ isOpenMobile, onCloseMobile }) {
   const navItems = [
     { id: "all", label: "Akış", icon: Home, count: posts.length },
     { id: "vertical", label: "Dikey Video", icon: RectangleVertical, count: verticalCount },
+    { id: "admin", label: "Admin & Otomasyon", icon: Sparkles, isSpecial: true },
   ];
 
   const handleSelectTab = (tabId) => {
@@ -40,11 +41,13 @@ export default function SidebarLeft({ isOpenMobile, onCloseMobile }) {
                 className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                   isActive
                     ? "bg-[#212121] text-white border border-white/20 shadow-md ring-1 ring-white/10"
+                    : item.isSpecial
+                    ? "text-white/90 hover:bg-[#1a1a1a] hover:text-white border border-white/10 bg-white/[0.03]"
                     : "text-slate-400 hover:bg-[#1a1a1a] hover:text-white border border-transparent"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-4.5 h-4.5 ${isActive ? "text-white" : "text-slate-400"}`} />
+                  <Icon className={`w-4.5 h-4.5 ${isActive ? "text-white" : item.isSpecial ? "text-white" : "text-slate-400"}`} />
                   <span>{item.label}</span>
                 </div>
                 {item.count > 0 && (
@@ -56,6 +59,11 @@ export default function SidebarLeft({ isOpenMobile, onCloseMobile }) {
                     }`}
                   >
                     {item.count}
+                  </span>
+                )}
+                {item.isSpecial && !item.count && (
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white font-mono uppercase">
+                    Admin
                   </span>
                 )}
               </button>
@@ -115,6 +123,11 @@ export default function SidebarLeft({ isOpenMobile, onCloseMobile }) {
                     }`}
                   >
                     {item.count}
+                  </span>
+                )}
+                {item.isSpecial && !item.count && (
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white font-mono uppercase">
+                    Admin
                   </span>
                 )}
               </button>
