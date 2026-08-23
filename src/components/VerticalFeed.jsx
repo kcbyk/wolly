@@ -6,7 +6,6 @@ import { downloadMedia } from "../utils/formatters";
 const VerticalVideoCard = memo(function VerticalVideoCard({ 
   post, 
   isActive, 
-  isNext,
   isNear, 
   isMuted, 
   onInView 
@@ -18,10 +17,12 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
   const progressFillRef = useRef(null);
   const progressThumbRef = useRef(null);
   const seekTimeRef = useRef(null);
+  const targetSeekPosRef = useRef(null);
+  const wasPlayingRef = useRef(false);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
-  const wasPlayingRef = useRef(false);
 
   const user = users.find((u) => u.id === post.userId) || {
     name: post.userId,
@@ -49,41 +50,48 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     return () => observer.disconnect();
   }, [post.id, onInView]);
 
-  // Instant zero-latency Autoplay when active, pause when inactive
+  // Robust play handler (handles AbortError & browser policies smoothly)
+  const safePlay = useCallback(async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    try {
+      video.muted = isMuted;
+      await video.play();
+      setIsPlaying(true);
+      setIsBuffering(false);
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        // Fallback to muted if unmuted autoplay was blocked
+        try {
+          if (videoRef.current) {
+            videoRef.current.muted = true;
+            await videoRef.current.play();
+            setIsPlaying(true);
+            setIsBuffering(false);
+          }
+        } catch (_) {}
+      }
+    }
+  }, [isMuted]);
+
+  // Active state change handler
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     if (isActive) {
-      video.muted = isMuted;
-      // Start playback immediately
-      const playPromise = video.play();
-      if (playPromise !== undefined) {
-        playPromise
-          .then(() => {
-            setIsPlaying(true);
-            setIsBuffering(false);
-          })
-          .catch(() => {
-            // Autoplay with sound blocked? Fallback to muted instant play
-            video.muted = true;
-            video.play()
-              .then(() => {
-                setIsPlaying(true);
-                setIsBuffering(false);
-              })
-              .catch(() => {});
-          });
-      }
+      safePlay();
     } else {
       video.pause();
       video.currentTime = 0;
       setIsPlaying(false);
       setIsBuffering(false);
+      setIsSeeking(false);
     }
-  }, [isActive, isMuted]);
+  }, [isActive, safePlay]);
 
-  // Sync mute state
+  // Sync mute state immediately
   useEffect(() => {
     const video = videoRef.current;
     if (video) video.muted = isMuted;
@@ -93,39 +101,46 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     const video = videoRef.current;
     if (!video || isSeeking) return;
     if (video.paused) {
-      video.play().then(() => setIsPlaying(true)).catch(() => {});
+      safePlay();
     } else {
       video.pause();
       setIsPlaying(false);
     }
   };
 
-  // Direct DOM progress update for 120fps smooth scrub
+  // Direct DOM progress update (Zero re-renders during video playback)
   const handleTimeUpdate = () => {
     const video = videoRef.current;
     if (!video || !video.duration || isSeeking) return;
+    
+    // Clear buffering whenever time moves
+    if (isBuffering) setIsBuffering(false);
+
     const pct = (video.currentTime / video.duration) * 100;
     if (progressFillRef.current) {
       progressFillRef.current.style.width = `${pct}%`;
     }
     if (progressThumbRef.current) {
-      progressThumbRef.current.style.left = `calc(${pct}% - 8px)`;
+      progressThumbRef.current.style.left = `calc(${pct}% - 7px)`;
     }
   };
 
-  const seekToX = (clientX) => {
+  // Update visual scrub UI without hammering video decoder
+  const updateScrubVisuals = (clientX) => {
     const bar = progressBarRef.current;
     const video = videoRef.current;
     if (!bar || !video || !video.duration) return;
+
     const rect = bar.getBoundingClientRect();
     const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    video.currentTime = pos * video.duration;
+    targetSeekPosRef.current = pos;
+
     const pct = pos * 100;
     if (progressFillRef.current) {
       progressFillRef.current.style.width = `${pct}%`;
     }
     if (progressThumbRef.current) {
-      progressThumbRef.current.style.left = `calc(${pct}% - 8px)`;
+      progressThumbRef.current.style.left = `calc(${pct}% - 7px)`;
     }
     if (seekTimeRef.current) {
       const t = pos * video.duration;
@@ -135,17 +150,32 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     }
   };
 
+  // Apply final seek position on release
+  const applySeek = () => {
+    const video = videoRef.current;
+    setIsSeeking(false);
+    if (!video || targetSeekPosRef.current === null || !video.duration) return;
+
+    video.currentTime = targetSeekPosRef.current * video.duration;
+    targetSeekPosRef.current = null;
+
+    if (wasPlayingRef.current) {
+      safePlay();
+    }
+  };
+
+  // Mouse seek handlers
   const onMouseDown = (e) => {
     e.stopPropagation();
     const video = videoRef.current;
     wasPlayingRef.current = !video?.paused;
     video?.pause();
     setIsSeeking(true);
-    seekToX(e.clientX);
-    const onMouseMove = (ev) => seekToX(ev.clientX);
+    updateScrubVisuals(e.clientX);
+
+    const onMouseMove = (ev) => updateScrubVisuals(ev.clientX);
     const onMouseUp = () => {
-      setIsSeeking(false);
-      if (wasPlayingRef.current) video?.play().then(() => setIsPlaying(true)).catch(() => {});
+      applySeek();
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
     };
@@ -153,24 +183,24 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     window.addEventListener("mouseup", onMouseUp, { once: true });
   };
 
+  // Touch seek handlers
   const onTouchStart = (e) => {
     e.stopPropagation();
     const video = videoRef.current;
     wasPlayingRef.current = !video?.paused;
     video?.pause();
     setIsSeeking(true);
-    seekToX(e.touches[0].clientX);
+    updateScrubVisuals(e.touches[0].clientX);
   };
 
   const onTouchMove = (e) => {
     e.stopPropagation();
-    seekToX(e.touches[0].clientX);
+    updateScrubVisuals(e.touches[0].clientX);
   };
 
   const onTouchEnd = (e) => {
     e.stopPropagation();
-    setIsSeeking(false);
-    if (wasPlayingRef.current) videoRef.current?.play().then(() => setIsPlaying(true)).catch(() => {});
+    applySeek();
   };
 
   if (!videoMedia) return null;
@@ -186,7 +216,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
       }}
       onClick={togglePlay}
     >
-      {/* Mount & pre-buffer video for active and upcoming cards */}
+      {/* Mount & pre-buffer video only for active or nearby card */}
       {isNear ? (
         <video
           ref={videoRef}
@@ -196,15 +226,16 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
           muted={isMuted}
           playsInline
           autoPlay={isActive}
-          preload={isActive || isNext ? "auto" : "metadata"}
+          preload={isActive ? "auto" : "metadata"}
           referrerPolicy="no-referrer"
           disableRemotePlayback
           disablePictureInPicture
           controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
           onPlay={() => { setIsPlaying(true); setIsBuffering(false); }}
-          onPlaying={() => setIsBuffering(false)}
-          onWaiting={() => setIsBuffering(true)}
+          onPlaying={() => { setIsPlaying(true); setIsBuffering(false); }}
+          onWaiting={() => { if (!isSeeking) setIsBuffering(true); }}
           onCanPlay={() => setIsBuffering(false)}
+          onSeeked={() => { setIsBuffering(false); if (wasPlayingRef.current) safePlay(); }}
           onPause={() => setIsPlaying(false)}
           onTimeUpdate={handleTimeUpdate}
           className="absolute inset-0 w-full h-full object-contain bg-black"
@@ -215,11 +246,11 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
         </div>
       )}
 
-      {/* Buffering indicator */}
-      {isBuffering && isActive && (
+      {/* Buffering Indicator */}
+      {isBuffering && isActive && !isSeeking && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <div className="p-3 rounded-full bg-black/60 backdrop-blur-sm border border-white/10">
-            <Loader2 className="w-8 h-8 text-white animate-spin" />
+          <div className="p-3 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 shadow-2xl">
+            <Loader2 className="w-7 h-7 text-white animate-spin" />
           </div>
         </div>
       )}
@@ -268,7 +299,11 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            updateScrubVisuals(e.clientX);
+            applySeek();
+          }}
         >
           <div className={`w-full rounded-full bg-white/20 transition-all duration-150 ${isSeeking ? "h-2" : "h-1"}`}>
             <div
@@ -311,26 +346,6 @@ export default function VerticalFeed({ onBack }) {
     }
     return 0;
   });
-
-  // Pre-buffer next 3 upcoming videos in browser background
-  useEffect(() => {
-    const upcoming = videoPosts.slice(activeIndex + 1, activeIndex + 4);
-    const links = [];
-    upcoming.forEach((p) => {
-      const v = p.media?.find((m) => m.type === "video");
-      if (v?.url) {
-        const link = document.createElement("link");
-        link.rel = "prefetch";
-        link.as = "video";
-        link.href = v.url;
-        document.head.appendChild(link);
-        links.push(link);
-      }
-    });
-    return () => {
-      links.forEach((l) => l.remove());
-    };
-  }, [activeIndex, videoPosts]);
 
   // Callback when a card enters viewport via IntersectionObserver
   const handleInView = useCallback((postId) => {
@@ -450,8 +465,7 @@ export default function VerticalFeed({ onBack }) {
             key={post.id}
             post={post}
             isActive={activeIndex === idx}
-            isNext={idx === activeIndex + 1}
-            isNear={Math.abs(activeIndex - idx) <= 2}
+            isNear={Math.abs(activeIndex - idx) <= 1}
             isMuted={isMuted}
             onInView={handleInView}
           />
