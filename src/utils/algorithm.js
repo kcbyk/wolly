@@ -1,41 +1,43 @@
 /**
  * TikTok / Instagram Reels "For You" (Keşfet) & Discovery Algorithm
  * 
- * Özellikler:
+ * Kararlı (Deterministic) & Kesintisiz Çeşitlilik Motoru:
  * 1. Aynı kullanıcının üst üste gelmesini engeller (Round-Robin Creator Interleaving).
- * 2. Farklı profiller arasında dinamik ve çeşitli bir akış oluşturur.
- * 3. Popülerlik ve beğeni puanlarını harmanlar.
+ * 2. Kararlıdır (Stable): Sayfa kaydırılırken sıra rastgele bozulmaz, video atlama yapmaz.
+ * 3. Her içerik üreticisinden sırayla 1'er video alarak zengin bir akış sunar.
  */
 
 export function buildForYouFeed(posts) {
   if (!posts || posts.length <= 2) return posts || [];
 
-  // 1. Gönderileri kullanıcılara göre grupla
+  // 1. Gönderileri kullanıcılara göre kararlı bir şekilde grupla
   const userGroups = {};
+  const userOrder = [];
+
   posts.forEach((p) => {
     const uid = p.userId || "anonymous";
-    if (!userGroups[uid]) userGroups[uid] = [];
+    if (!userGroups[uid]) {
+      userGroups[uid] = [];
+      userOrder.push(uid);
+    }
     userGroups[uid].push(p);
   });
 
-  const userKeys = Object.keys(userGroups);
-  if (userKeys.length <= 1) return posts;
+  if (userOrder.length <= 1) return posts;
 
-  // 2. Çeşitlilik Motoru (Round-Robin Interleaving)
+  // 2. Kararlı Round-Robin Harmana Dönüştür
   const result = [];
-  let hasMore = true;
+  let maxPerUser = 0;
+  for (const uid of userOrder) {
+    if (userGroups[uid].length > maxPerUser) {
+      maxPerUser = userGroups[uid].length;
+    }
+  }
 
-  while (hasMore) {
-    hasMore = false;
-    // Her turda kullanıcı sırasını karıştır (her seferinde farklı keşfet deneyimi)
-    const shuffledKeys = [...userKeys].sort(() => Math.random() - 0.5);
-
-    for (const uid of shuffledKeys) {
-      if (userGroups[uid].length > 0) {
-        result.push(userGroups[uid].shift());
-        if (userGroups[uid].length > 0) {
-          hasMore = true;
-        }
+  for (let round = 0; round < maxPerUser; round++) {
+    for (const uid of userOrder) {
+      if (round < userGroups[uid].length) {
+        result.push(userGroups[uid][round]);
       }
     }
   }

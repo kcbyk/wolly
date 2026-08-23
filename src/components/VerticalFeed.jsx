@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Play, Volume2, VolumeX, Download, ArrowLeft, Loader2, Heart } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { downloadMedia, formatNumber } from "../utils/formatters";
+import { downloadMedia } from "../utils/formatters";
 import { buildForYouFeed } from "../utils/algorithm";
 
 const VerticalVideoCard = memo(function VerticalVideoCard({ 
@@ -9,11 +9,9 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
   isActive, 
   isNext,
   isNear, 
-  isMuted, 
-  onInView 
+  isMuted
 }) {
   const { users, toggleLike, likes } = useApp();
-  const cardRef = useRef(null);
   const videoRef = useRef(null);
   const progressBarRef = useRef(null);
   const progressFillRef = useRef(null);
@@ -38,40 +36,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
 
   const videoMedia = post.media?.find((m) => m.type === "video");
 
-  // TikTok Intersection Detection (triggers before full scroll completes)
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el || !onInView) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          onInView(post.id);
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [post.id, onInView]);
-
-  // TikTok Pre-warm: If this is the upcoming next video, preload buffer immediately
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isNext && !isActive) {
-      video.preload = "auto";
-      video.muted = true;
-      // Pre-warm the media decoder stream
-      try {
-        video.load();
-      } catch (_) {}
-    }
-  }, [isNext, isActive]);
-
-  // Zero-latency play trigger
+  // Zero-latency play trigger with abort protection
   const safePlay = useCallback(async () => {
     const video = videoRef.current;
     if (!video) return;
@@ -83,7 +48,6 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
       setIsBuffering(false);
     } catch (err) {
       if (err.name !== "AbortError") {
-        // Fallback to muted instant playback
         try {
           if (videoRef.current) {
             videoRef.current.muted = true;
@@ -96,7 +60,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     }
   }, [isMuted]);
 
-  // Active state change handler
+  // Handle active status
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -112,17 +76,16 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     }
   }, [isActive, safePlay]);
 
-  // Sync mute state
+  // Sync mute state immediately
   useEffect(() => {
     const video = videoRef.current;
     if (video) video.muted = isMuted;
   }, [isMuted]);
 
-  // Tap handler: single tap = play/pause, double tap = like (TikTok style)
+  // Tap handler: single tap = play/pause, double tap = like
   const handleCardClick = (e) => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      // Double tap -> Like with heart burst animation
       if (!isLiked) toggleLike(post.id, e);
       setShowHeartAnim(true);
       setTimeout(() => setShowHeartAnim(false), 800);
@@ -157,7 +120,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     }
   };
 
-  // Update visual scrub UI without hammering video decoder
+  // Update visual scrub UI
   const updateScrubVisuals = (clientX) => {
     const bar = progressBarRef.current;
     const video = videoRef.current;
@@ -182,7 +145,6 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     }
   };
 
-  // Apply final seek position on release
   const applySeek = () => {
     const video = videoRef.current;
     setIsSeeking(false);
@@ -237,7 +199,6 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
 
   return (
     <div
-      ref={cardRef}
       className="relative w-full bg-black overflow-hidden select-none"
       style={{
         height: "100dvh",
@@ -247,8 +208,23 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
       }}
       onClick={handleCardClick}
     >
+      {/* Background Poster / Thumbnail preview (Instant display while buffer loads) */}
+      {videoMedia.poster ? (
+        <img
+          src={videoMedia.poster}
+          alt="poster"
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 w-full h-full object-cover opacity-60 pointer-events-none"
+        />
+      ) : (
+        <div className="absolute inset-0 w-full h-full bg-[#0d0d0d] flex items-center justify-center pointer-events-none">
+          <Play className="w-12 h-12 text-white/10" />
+        </div>
+      )}
+
       {/* Pre-buffered Video Player */}
-      {isNear ? (
+      {isNear && (
         <video
           ref={videoRef}
           src={videoMedia.url}
@@ -269,12 +245,8 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
           onSeeked={() => { setIsBuffering(false); if (wasPlayingRef.current) safePlay(); }}
           onPause={() => setIsPlaying(false)}
           onTimeUpdate={handleTimeUpdate}
-          className="absolute inset-0 w-full h-full object-contain bg-black"
+          className="absolute inset-0 w-full h-full object-contain bg-transparent z-10"
         />
-      ) : (
-        <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
-          <Play className="w-10 h-10 text-white/10" />
-        </div>
       )}
 
       {/* Double Tap Heart Animation */}
@@ -286,7 +258,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
 
       {/* Buffering Indicator */}
       {isBuffering && isActive && !isSeeking && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           <div className="p-3 rounded-full bg-black/60 backdrop-blur-sm border border-white/10 shadow-2xl">
             <Loader2 className="w-7 h-7 text-white animate-spin" />
           </div>
@@ -295,7 +267,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
 
       {/* Center play icon when paused */}
       {!isPlaying && !isSeeking && !isBuffering && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
           <div className="w-16 h-16 rounded-full bg-black/60 text-white border border-white/20 flex items-center justify-center shadow-2xl">
             <Play className="w-7 h-7 fill-white ml-1 text-white" />
           </div>
@@ -364,12 +336,13 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
 export default function VerticalFeed({ onBack }) {
   const { posts, verticalFeedConfig, closeVerticalFeed, showToast } = useApp();
   const containerRef = useRef(null);
+  const isScrollingRef = useRef(false);
   const [isMuted, setIsMuted] = useState(false);
 
   const targetUserId = verticalFeedConfig?.userId;
   const startPostId = verticalFeedConfig?.startPostId;
 
-  // Filter videos (either by single profile or mixed For You feed)
+  // Filter videos (Stable & Deterministic For You Feed)
   const rawVideoPosts = posts.filter((p) => {
     const isVideo = p.mediaType === "video" || p.media?.some((m) => m.type === "video");
     if (!isVideo) return false;
@@ -389,13 +362,42 @@ export default function VerticalFeed({ onBack }) {
     return 0;
   });
 
-  // Callback when a card enters viewport via IntersectionObserver
-  const handleInView = useCallback((postId) => {
-    const idx = videoPosts.findIndex((p) => p.id === postId);
-    if (idx !== -1) {
-      setActiveIndex(idx);
-    }
-  }, [videoPosts]);
+  // Background Stream Preloader: Warm up network cache for next 3 upcoming videos
+  useEffect(() => {
+    const upcoming = videoPosts.slice(activeIndex + 1, activeIndex + 4);
+    upcoming.forEach((p) => {
+      const v = p.media?.find((m) => m.type === "video");
+      if (v?.url && typeof window !== "undefined") {
+        // Pre-warm TCP/TLS connection and fetch first chunk
+        fetch(v.url, { headers: { Range: "bytes=0-1048576" } }).catch(() => {});
+      }
+    });
+  }, [activeIndex, videoPosts]);
+
+  // Robust snap scroll tracking (Calculates exact active card from scroll position)
+  const handleScroll = useCallback(() => {
+    if (isScrollingRef.current) return;
+    isScrollingRef.current = true;
+
+    requestAnimationFrame(() => {
+      const container = containerRef.current;
+      if (container) {
+        const itemHeight = window.innerHeight;
+        const index = Math.round(container.scrollTop / itemHeight);
+        if (index >= 0 && index < videoPosts.length && index !== activeIndex) {
+          setActiveIndex(index);
+        }
+      }
+      isScrollingRef.current = false;
+    });
+  }, [videoPosts.length, activeIndex]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   // Scroll to starting post on mount
   useEffect(() => {
@@ -404,7 +406,7 @@ export default function VerticalFeed({ onBack }) {
     }
   }, []);
 
-  // Keyboard navigation (ArrowUp, ArrowDown, M, Space)
+  // Keyboard navigation (ArrowUp, ArrowDown, M)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "ArrowDown") {
@@ -530,7 +532,6 @@ export default function VerticalFeed({ onBack }) {
             isNext={idx === activeIndex + 1}
             isNear={Math.abs(activeIndex - idx) <= 1}
             isMuted={isMuted}
-            onInView={handleInView}
           />
         ))}
       </div>
