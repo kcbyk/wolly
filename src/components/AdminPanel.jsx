@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   ArrowLeft, Download, Upload, Trash2, Plus, Sparkles, 
   Search, RefreshCw, CheckCircle, Video, User, 
-  Database, FileCode, Check, ExternalLink, Copy, HelpCircle 
+  Database, Check, ExternalLink, Clipboard, Smartphone,
+  Zap, ShieldAlert, ArrowRight
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { autoScrapeSotweProfile, parseSotweHtml, parseSotweData, extractUsername } from "../utils/sotweScraper";
@@ -26,6 +27,7 @@ export default function AdminPanel({ onBack }) {
   const [statusMessage, setStatusMessage] = useState("");
   const [extractedResult, setExtractedResult] = useState(null);
   const [replaceExisting, setReplaceExisting] = useState(false);
+  const [showMobileBridge, setShowMobileBridge] = useState(false);
 
   // Manual video add state
   const [manualUsername, setManualUsername] = useState("");
@@ -38,16 +40,16 @@ export default function AdminPanel({ onBack }) {
   const totalVideos = posts.filter(p => p.mediaType === "video" || p.media?.some(m => m.type === "video")).length;
   const detectedUsername = extractUsername(profileUrl);
 
-  // 1. Try Automatic URL Scrape
-  const handleTryAuto = async () => {
+  // 1. Auto & Semi-Auto Scrape Handler
+  const handleStartScrape = async () => {
     if (!profileUrl.trim()) {
-      showToast("Lütfen bir Sotwe URL'i veya kullanıcı adı girin!", "error");
+      showToast("Lütfen bir Sotwe linki veya kullanıcı adı girin!", "error");
       return;
     }
 
     setIsProcessing(true);
     setExtractedResult(null);
-    setStatusMessage("Otomatik bağlantı deneniyor...");
+    setStatusMessage("Otomatik taranıyor...");
 
     try {
       const result = await autoScrapeSotweProfile(profileUrl, (msg) => {
@@ -58,27 +60,49 @@ export default function AdminPanel({ onBack }) {
         setExtractedResult(result);
         setStatusMessage(`🎉 Başarılı! ${result.posts.length} video bulundu.`);
         showToast(`${result.posts.length} video başarıyla çekildi! 🎯`);
+        setShowMobileBridge(false);
       } else {
-        setStatusMessage("Otomatik çekilemedi. Lütfen aşağıdaki kutuya sayfa kaynağını (Ctrl+U) yapıştırın.");
-        showToast("Otomatik proxy engellendi. Sayfa kaynağını yapıştırın.", "info");
+        // Cloudflare block triggered -> Activate Semi-Auto Bridge
+        setShowMobileBridge(true);
+        setStatusMessage("Cloudflare koruması devrede. Yarı otomatik mobil köprü başlatıldı.");
       }
-    } catch (err) {
-      setStatusMessage(`⚠️ ${err.message}`);
-      showToast(err.message, "error");
+    } catch {
+      // Cloudflare block triggered -> Open Semi-Auto Bridge automatically
+      setShowMobileBridge(true);
+      setStatusMessage("Cloudflare koruması devrede. Yarı otomatik mobil köprü başlatıldı.");
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // 2. Parse Pasted HTML, JSON or MP4 list
-  const handleParsePastedData = () => {
-    if (!pasteData.trim()) {
-      showToast("Lütfen kopyaladığınız sayfa kodunu veya linkleri yapıştırın!", "error");
-      return;
-    }
+  // 2. Read from Clipboard (1-Tap on Mobile!)
+  const handleReadFromClipboard = async () => {
+    try {
+      if (!navigator.clipboard?.readText) {
+        showToast("Tarayıcınız otomatik pano okumayı desteklemiyor. Metni kutuya yapıştırın.", "error");
+        return;
+      }
 
+      setIsProcessing(true);
+      const text = await navigator.clipboard.readText();
+      if (!text || text.trim().length === 0) {
+        showToast("Pano boş! Lütfen Sotwe sayfasında metni kopyalayın.", "error");
+        setIsProcessing(false);
+        return;
+      }
+
+      setPasteData(text);
+      processExtractedContent(text);
+    } catch (err) {
+      showToast("Pano okuma izni verilmedi: " + err.message, "error");
+      setIsProcessing(false);
+    }
+  };
+
+  // 3. Process Extracted Content
+  const processExtractedContent = (rawText) => {
     setIsProcessing(true);
-    setStatusMessage("Ayrıştırılıyor...");
+    setStatusMessage("Videolar ayıklanıyor...");
 
     try {
       const targetUser = detectedUsername || "sotwe_user";
@@ -86,20 +110,21 @@ export default function AdminPanel({ onBack }) {
 
       // Try JSON first
       try {
-        const json = JSON.parse(pasteData);
+        const json = JSON.parse(rawText);
         result = parseSotweData(json, targetUser);
       } catch {
         // Fallback to HTML & MP4 regex parser
-        result = parseSotweHtml(pasteData, targetUser);
+        result = parseSotweHtml(rawText, targetUser);
       }
 
       if (result && result.success && result.posts.length > 0) {
         setExtractedResult(result);
         setStatusMessage(`🎉 Harika! ${result.posts.length} adet HD MP4 video başarıyla ayıklandı.`);
         showToast(`${result.posts.length} adet video ayıklandı! 🚀`);
+        setShowMobileBridge(false);
       } else {
-        setStatusMessage("❌ Yapıştırılan veride video bulunamadı. Lütfen geçerli bir HTML veya JSON yapıştırın.");
-        showToast("Video bulunamadı. Sayfa kaynağını (Ctrl+U) eksiksiz kopyaladığınızdan emin olun.", "error");
+        setStatusMessage("❌ Yapıştırılan veride video bulunamadı. Lütfen sayfadaki tüm metni kopyaladığınızdan emin olun.");
+        showToast("Video bulunamadı. Sayfadaki metni kopyaladığınızdan emin olun.", "error");
       }
     } catch (err) {
       setStatusMessage(`Hata: ${err.message}`);
@@ -109,7 +134,7 @@ export default function AdminPanel({ onBack }) {
     }
   };
 
-  // 3. Publish & Apply to Site
+  // 4. Publish & Apply to Site
   const handleApplyToSite = () => {
     if (!extractedResult) return;
     importScrapedData(extractedResult.posts, extractedResult.user, replaceExisting);
@@ -117,9 +142,10 @@ export default function AdminPanel({ onBack }) {
     setPasteData("");
     setProfileUrl("");
     setStatusMessage("");
+    setShowMobileBridge(false);
   };
 
-  // 4. Manual Single Video Add
+  // 5. Manual Single Video Add
   const handleManualAdd = (e) => {
     e.preventDefault();
     if (!manualVideoUrl.trim()) {
@@ -160,7 +186,7 @@ export default function AdminPanel({ onBack }) {
     showToast("Video başarıyla eklendi! 🎬");
   };
 
-  // 5. Backup Export/Import
+  // 6. Backup Export/Import
   const handleExportBackup = () => {
     const data = { posts, users, exportedAt: new Date().toISOString(), version: "1.0" };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -216,9 +242,9 @@ export default function AdminPanel({ onBack }) {
             )}
             <div>
               <h1 className="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
-                <span>⚙️ Sotwe Otomasyon & Admin Paneli</span>
+                <span>⚡ Sotwe Otomasyon Paneli</span>
               </h1>
-              <p className="text-xs text-slate-400">Sotwe profillerinden tüm videoları tek tıkla siteye çekin</p>
+              <p className="text-xs text-slate-400">Mobilden ve Masaüstünden tek tıkla video çekin</p>
             </div>
           </div>
 
@@ -248,8 +274,8 @@ export default function AdminPanel({ onBack }) {
                 : "bg-[#141414] text-slate-300 hover:text-white border border-white/10"
             }`}
           >
-            <Sparkles className="w-4 h-4" />
-            <span>Sotwe Video & Profil Çekici (Garantili)</span>
+            <Zap className="w-4 h-4" />
+            <span>Otomatik Video Çekici</span>
           </button>
 
           <button
@@ -281,104 +307,160 @@ export default function AdminPanel({ onBack }) {
         {activeTab === "extractor" && (
           <div className="flex flex-col gap-6">
             
-            {/* Step-by-Step Interactive Card */}
+            {/* Primary Input Card */}
             <div className="glass-card rounded-2xl p-6 flex flex-col gap-5 border border-white/10 bg-[#141414]">
               
-              {/* Header */}
               <div className="flex flex-col gap-1">
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-white" />
-                  Sotwe Profil & Video Çekme Sihirbazı
+                  <Zap className="w-5 h-5 text-white" />
+                  Sotwe URL'den Otomatik Video Çek
                 </h2>
                 <p className="text-xs text-slate-400">
-                  URL'i girin, sayfayı açın ve kaynak kodunu yapıştırın — sistem sayfadaki tüm HD MP4 videolarını anında ayıklar!
+                  Sotwe profil linkini veya kullanıcı adını yapıştırın ve <b>"Videoları Çek"</b> butonuna basın.
                 </p>
               </div>
 
-              {/* Step 1: URL Input & Quick Open Button */}
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-white text-black text-[11px] font-bold flex items-center justify-center">1</span>
-                  Sotwe Profil URL'i veya Kullanıcı Adı
-                </label>
-
-                <div className="flex flex-col sm:flex-row gap-2">
+              {/* URL Input Form */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
                   <input
                     type="text"
                     value={profileUrl}
                     onChange={(e) => setProfileUrl(e.target.value)}
                     placeholder="https://www.sotwe.com/abbeyvelvett veya @kullanici_adi"
-                    className="flex-1 px-4 py-3 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-white font-mono"
+                    className="w-full px-4 py-3.5 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-white font-mono"
+                    disabled={isProcessing}
                   />
-
-                  {/* Open in Sotwe Link button */}
-                  {detectedUsername ? (
-                    <a
-                      href={`https://www.sotwe.com/${detectedUsername}?lang=tr`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="px-4 py-3 rounded-xl bg-[#212121] hover:bg-[#2d2d2d] border border-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer shadow-md"
+                  {profileUrl && (
+                    <button
+                      type="button"
+                      onClick={() => { setProfileUrl(""); setShowMobileBridge(false); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
                     >
-                      <ExternalLink className="w-4 h-4" />
-                      <span>Sotwe'de Aç (@{detectedUsername})</span>
-                    </a>
-                  ) : null}
-
-                  {/* Try Auto button */}
-                  <button
-                    type="button"
-                    onClick={handleTryAuto}
-                    disabled={isProcessing || !profileUrl.trim()}
-                    className="px-4 py-3 rounded-xl bg-white hover:bg-slate-200 text-black text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isProcessing ? "animate-spin" : ""}`} />
-                    <span>Otomatik Dene</span>
-                  </button>
+                      Temizle
+                    </button>
+                  )}
                 </div>
-              </div>
-
-              {/* Step 2: Paste Code Box */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <span className="w-5 h-5 rounded-full bg-white text-black text-[11px] font-bold flex items-center justify-center">2</span>
-                    Sayfa Kaynağını (HTML) veya JSON'u Yapıştırın (%100 Garantili)
-                  </label>
-                  
-                  <span className="text-[11px] text-slate-400">
-                    Sotwe sayfasında <b>Ctrl+U</b> yapın → <b>Ctrl+A</b> ile kopyalayın
-                  </span>
-                </div>
-
-                <textarea
-                  rows={6}
-                  value={pasteData}
-                  onChange={(e) => setPasteData(e.target.value)}
-                  placeholder="Sotwe sayfa kaynağını (Ctrl+U) veya JSON verisini buraya yapıştırın..."
-                  className="w-full p-4 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:border-white leading-relaxed resize-y"
-                />
-              </div>
-
-              {/* Step 3: Extract Button */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-                {statusMessage ? (
-                  <div className="text-xs font-mono text-slate-300 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    <span>{statusMessage}</span>
-                  </div>
-                ) : <div />}
 
                 <button
-                  onClick={handleParsePastedData}
-                  disabled={isProcessing || !pasteData.trim()}
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white hover:bg-slate-200 disabled:opacity-40 text-black text-sm font-bold shadow-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  type="button"
+                  onClick={handleStartScrape}
+                  disabled={isProcessing || !profileUrl.trim()}
+                  className="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-200 disabled:opacity-40 text-black text-sm font-bold shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Videoları ve Profili Ayıkla 🎯</span>
+                  {isProcessing ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Çekiliyor...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4" />
+                      <span>Videoları Çek 🚀</span>
+                    </>
+                  )}
                 </button>
               </div>
 
+              {/* Status indicator */}
+              {statusMessage && (
+                <div className="p-3 rounded-xl bg-black/60 border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  <span>{statusMessage}</span>
+                </div>
+              )}
+
             </div>
+
+            {/* ── SEMI-AUTOMATIC MOBILE BRIDGE (Activates when Cloudflare is encountered) ── */}
+            {showMobileBridge && (
+              <div className="glass-card rounded-2xl p-6 border border-amber-500/30 bg-[#17140e] flex flex-col gap-4 shadow-2xl animate-fade-in">
+                
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 shrink-0">
+                    <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <h3 className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
+                      <span>Mobil Yarı Otomatik Köprü (Cloudflare Korumasını Aşma)</span>
+                    </h3>
+                    <p className="text-xs text-amber-200/80">
+                      Sotwe'nin bot korumasını aşmak için telefonunuzda sadece 2 saniyelik şu işlemi yapın:
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2-Step Mobile Bridge Actions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  
+                  {/* Step 1: Open Sotwe in new tab */}
+                  <a
+                    href={`https://www.sotwe.com/${detectedUsername || "abbeyvelvett"}?lang=tr`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-4 rounded-xl bg-black/60 hover:bg-black/90 border border-white/15 text-white flex flex-col gap-2 transition-all group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-amber-400 text-black text-[11px] font-bold flex items-center justify-center">1</span>
+                        Sotwe Sayfasını Aç
+                      </span>
+                      <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-white" />
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Sayfayı açın, herhangi bir yere basılı tutup <b>"Tümünü Seç"</b> → <b>"Kopyala"</b> yapın.
+                    </p>
+                  </a>
+
+                  {/* Step 2: 1-Tap Read from Clipboard */}
+                  <button
+                    onClick={handleReadFromClipboard}
+                    disabled={isProcessing}
+                    className="p-4 rounded-xl bg-white hover:bg-slate-200 text-black flex flex-col gap-2 transition-all text-left cursor-pointer shadow-xl"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-black flex items-center gap-1.5">
+                        <span className="w-5 h-5 rounded-full bg-black text-white text-[11px] font-bold flex items-center justify-center">2</span>
+                        Panodan Otomatik Oku & Ekle
+                      </span>
+                      <Clipboard className="w-4 h-4 text-black" />
+                    </div>
+                    <p className="text-[11px] text-slate-800 leading-relaxed font-medium">
+                      Tek tıkla kopyaladığınız içeriği okur, tüm HD MP4 videolarını anında ayıklar!
+                    </p>
+                  </button>
+
+                </div>
+
+                {/* Direct Paste Fallback textarea */}
+                <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400">Veya metni doğrudan buraya yapıştırıp ayıklayın:</span>
+                    {pasteData && (
+                      <button
+                        onClick={() => processExtractedContent(pasteData)}
+                        className="text-xs text-white font-bold underline cursor-pointer"
+                      >
+                        Ayıkla →
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    rows={3}
+                    value={pasteData}
+                    onChange={(e) => {
+                      setPasteData(e.target.value);
+                      if (e.target.value.length > 50) {
+                        processExtractedContent(e.target.value);
+                      }
+                    }}
+                    placeholder="Kopyaladığınız metni buraya yapıştırabilirsiniz..."
+                    className="w-full p-3 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:border-white resize-none"
+                  />
+                </div>
+
+              </div>
+            )}
 
             {/* ── EXTRACTED PREVIEW CARD ── */}
             {extractedResult && (
