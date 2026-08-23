@@ -1,5 +1,19 @@
 export const MOCK_USERS = [
   {
+    "id": "gizdemdemir",
+    "name": "gizdemdemir",
+    "handle": "gizdemdemir",
+    "avatar": "https://api.dicebear.com/7.x/identicon/svg?seed=gizdemdemir",
+    "bio": "@gizdemdemir Sotwe Medyaları",
+    "verified": true,
+    "badgeType": "blue",
+    "stats": {
+      "followers": 5000,
+      "following": 150,
+      "posts": 38
+    }
+  },
+  {
     "id": "Turk_ifsa355",
     "name": "Turk_ifsa355",
     "handle": "Turk_ifsa355",
@@ -42,6 +56,804 @@ export const MOCK_USERS = [
 ];
 
 export const MOCK_POSTS = [
+  {
+    "id": "gizdemdemir_1_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #1",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091099687818301440/vid/avc1/720x1280/6xiYCkkORMWdLm2f.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 150,
+      "replies": 15,
+      "retweets": 40,
+      "bookmarks": 25
+    }
+  },
+  {
+    "id": "gizdemdemir_2_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #2",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090616617692512256/vid/avc1/498x1080/ODw5CEvPHAGS7oUM.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 160,
+      "replies": 16,
+      "retweets": 42,
+      "bookmarks": 26
+    }
+  },
+  {
+    "id": "gizdemdemir_3_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #3",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090194234062118912/vid/avc1/720x1280/OvO1xO5dk_4wgu1U.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 170,
+      "replies": 17,
+      "retweets": 44,
+      "bookmarks": 27
+    }
+  },
+  {
+    "id": "gizdemdemir_4_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #4",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091157349457399808/vid/avc1/720x1280/bdBR5drI_sA1hERv.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 180,
+      "replies": 18,
+      "retweets": 46,
+      "bookmarks": 28
+    }
+  },
+  {
+    "id": "gizdemdemir_5_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #5",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090858615762534400/vid/avc1/360x640/e0_P-d5EJAkF5hOT.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 190,
+      "replies": 19,
+      "retweets": 48,
+      "bookmarks": 29
+    }
+  },
+  {
+    "id": "gizdemdemir_6_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #6",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2089864981298716672/vid/avc1/352x640/E4znwx1vZyp3iAjY.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 200,
+      "replies": 20,
+      "retweets": 50,
+      "bookmarks": 30
+    }
+  },
+  {
+    "id": "gizdemdemir_7_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #7",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090895032093937664/vid/avc1/590x1280/P_piMWSumniofGNi.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 210,
+      "replies": 21,
+      "retweets": 52,
+      "bookmarks": 31
+    }
+  },
+  {
+    "id": "gizdemdemir_8_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #8",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090744278817312768/vid/avc1/720x1116/jjFcq5q6lNlWT14n.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 220,
+      "replies": 22,
+      "retweets": 54,
+      "bookmarks": 32
+    }
+  },
+  {
+    "id": "gizdemdemir_9_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #9",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/1932758658733015040/vid/avc1/720x1280/t_D6v5pZhcu-vDbH.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 230,
+      "replies": 23,
+      "retweets": 56,
+      "bookmarks": 33
+    }
+  },
+  {
+    "id": "gizdemdemir_10_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #10",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091224812261662720/vid/avc1/720x1248/T7v0TTMtbBSa2Q25.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 240,
+      "replies": 24,
+      "retweets": 58,
+      "bookmarks": 34
+    }
+  },
+  {
+    "id": "gizdemdemir_11_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #11",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2089908014535073792/vid/avc1/608x1080/rfBD6437c-zSz2O8.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 250,
+      "replies": 25,
+      "retweets": 60,
+      "bookmarks": 35
+    }
+  },
+  {
+    "id": "gizdemdemir_12_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #12",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090673552093556736/vid/avc1/1290x2370/BrfZKx1OIEDbtgQw.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 260,
+      "replies": 26,
+      "retweets": 62,
+      "bookmarks": 36
+    }
+  },
+  {
+    "id": "gizdemdemir_13_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #13",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090926129578123264/vid/avc1/368x628/PWBr2hXpBrp748Al.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 270,
+      "replies": 27,
+      "retweets": 64,
+      "bookmarks": 37
+    }
+  },
+  {
+    "id": "gizdemdemir_14_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #14",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090295840699023360/vid/avc1/720x1280/sZe8DeT_X3rC_qUy.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 280,
+      "replies": 28,
+      "retweets": 66,
+      "bookmarks": 38
+    }
+  },
+  {
+    "id": "gizdemdemir_15_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #15",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090907011546337281/vid/avc1/352x640/RiDRuPha8GDEW2RN.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 290,
+      "replies": 29,
+      "retweets": 68,
+      "bookmarks": 39
+    }
+  },
+  {
+    "id": "gizdemdemir_16_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #16",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091242349842042880/vid/avc1/1080x1920/JFwnFp8iXdMYNnEJ.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 300,
+      "replies": 30,
+      "retweets": 70,
+      "bookmarks": 40
+    }
+  },
+  {
+    "id": "gizdemdemir_17_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #17",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2091238960617902080/vid/avc1/718x1278/8Og91h-El7QkilxI.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 310,
+      "replies": 31,
+      "retweets": 72,
+      "bookmarks": 41
+    }
+  },
+  {
+    "id": "gizdemdemir_18_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #18",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/2075339355866968065/pu/vid/avc1/704x1264/UiO1tkm3IWmWNwtr.mp4?tag=12",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 320,
+      "replies": 32,
+      "retweets": 74,
+      "bookmarks": 42
+    }
+  },
+  {
+    "id": "gizdemdemir_19_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #19",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090901511219847168/vid/avc1/320x562/M73PdgdLD5iljuGk.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 330,
+      "replies": 33,
+      "retweets": 76,
+      "bookmarks": 43
+    }
+  },
+  {
+    "id": "gizdemdemir_20_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #20",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090803044846030848/vid/avc1/720x1188/6VM8XwwalKQv_NEp.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 340,
+      "replies": 34,
+      "retweets": 78,
+      "bookmarks": 44
+    }
+  },
+  {
+    "id": "gizdemdemir_21_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #21",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/2062741670207057920/pu/vid/avc1/656x1264/JJQ3AB3DW5EmzOJX.mp4?tag=12",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 350,
+      "replies": 35,
+      "retweets": 80,
+      "bookmarks": 45
+    }
+  },
+  {
+    "id": "gizdemdemir_22_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #22",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2088012720398389248/vid/avc1/720x1224/cDjddMwJqU7bQY87.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 360,
+      "replies": 36,
+      "retweets": 82,
+      "bookmarks": 46
+    }
+  },
+  {
+    "id": "gizdemdemir_23_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #23",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2079146517433327616/vid/avc1/720x1280/s5Z30trrSBeEn3fV.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 370,
+      "replies": 37,
+      "retweets": 84,
+      "bookmarks": 47
+    }
+  },
+  {
+    "id": "gizdemdemir_24_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #24",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2087722057660256256/vid/avc1/720x1280/7mQkv8Bcbpd6k0cv.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 380,
+      "replies": 38,
+      "retweets": 86,
+      "bookmarks": 48
+    }
+  },
+  {
+    "id": "gizdemdemir_25_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #25",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090480614625460225/vid/avc1/720x1290/rdivDvbP4w39alix.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 390,
+      "replies": 39,
+      "retweets": 88,
+      "bookmarks": 49
+    }
+  },
+  {
+    "id": "gizdemdemir_26_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #26",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090532766727237632/vid/avc1/720x1280/1h3988oGcL1VajRU.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 400,
+      "replies": 40,
+      "retweets": 90,
+      "bookmarks": 50
+    }
+  },
+  {
+    "id": "gizdemdemir_27_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #27",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/ext_tw_video/2062745188682874880/pu/vid/avc1/656x1264/4JnQSHq1v7Z45Pag.mp4?tag=12",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 410,
+      "replies": 41,
+      "retweets": 92,
+      "bookmarks": 51
+    }
+  },
+  {
+    "id": "gizdemdemir_28_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #28",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2078941915924541440/vid/avc1/608x1080/PoX7cgMXYNrm1Efq.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 420,
+      "replies": 42,
+      "retweets": 94,
+      "bookmarks": 52
+    }
+  },
+  {
+    "id": "gizdemdemir_29_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #29",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090037214977650688/vid/avc1/476x848/cdaOorIwRq7kIZiJ.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 430,
+      "replies": 43,
+      "retweets": 96,
+      "bookmarks": 53
+    }
+  },
+  {
+    "id": "gizdemdemir_30_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #30",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2089860121518051328/vid/avc1/360x640/89CJRiVkpJbPPcJj.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 440,
+      "replies": 44,
+      "retweets": 98,
+      "bookmarks": 54
+    }
+  },
+  {
+    "id": "gizdemdemir_31_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #31",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2089150574495408128/vid/avc1/1080x1080/wA9MSLKBEEQOOntp.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 450,
+      "replies": 45,
+      "retweets": 100,
+      "bookmarks": 55
+    }
+  },
+  {
+    "id": "gizdemdemir_32_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #32",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2078498063388143616/vid/avc1/498x924/swEJqKZhjSfbS9tt.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 460,
+      "replies": 46,
+      "retweets": 102,
+      "bookmarks": 56
+    }
+  },
+  {
+    "id": "gizdemdemir_33_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #33",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/1936864527569620992/vid/avc1/480x848/JHMnyYPjaQai01dm.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 470,
+      "replies": 47,
+      "retweets": 104,
+      "bookmarks": 57
+    }
+  },
+  {
+    "id": "gizdemdemir_34_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #34",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090039750690541568/vid/avc1/720x720/vpmSqnq8sZdbdi3h.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 480,
+      "replies": 48,
+      "retweets": 106,
+      "bookmarks": 58
+    }
+  },
+  {
+    "id": "gizdemdemir_35_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #35",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2089013008689188864/vid/avc1/1280x720/UcgY0mwvJ1_71vS3.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 490,
+      "replies": 49,
+      "retweets": 108,
+      "bookmarks": 59
+    }
+  },
+  {
+    "id": "gizdemdemir_36_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #36",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2089937463875874816/vid/avc1/720x720/8styuyJi7iStWb2O.mp4?tag=14",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 500,
+      "replies": 50,
+      "retweets": 110,
+      "bookmarks": 60
+    }
+  },
+  {
+    "id": "gizdemdemir_37_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #37",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090216216602480642/vid/avc1/1278x662/_bfYwmKppuvChlwi.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 510,
+      "replies": 51,
+      "retweets": 112,
+      "bookmarks": 61
+    }
+  },
+  {
+    "id": "gizdemdemir_38_1787471637",
+    "userId": "gizdemdemir",
+    "content": "@gizdemdemir Video #38",
+    "createdAt": "Yeni",
+    "mediaType": "video",
+    "media": [
+      {
+        "type": "video",
+        "url": "https://video-s.twimg.com/amplify_video/2090017157979439104/vid/avc1/640x360/sTSBGqkIu1wvxfHG.mp4?tag=29",
+        "poster": "",
+        "alt": "@gizdemdemir video"
+      }
+    ],
+    "stats": {
+      "likes": 520,
+      "replies": 52,
+      "retweets": 114,
+      "bookmarks": 62
+    }
+  },
   {
     "id": "Turk_ifsa355_1_1787468878",
     "userId": "Turk_ifsa355",
