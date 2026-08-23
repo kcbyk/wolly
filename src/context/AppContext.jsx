@@ -67,6 +67,7 @@ export function AppProvider({ children }) {
   const [commentsModalPost, setCommentsModalPost] = useState(null);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [verticalFeedConfig, setVerticalFeedConfig] = useState({ userId: null, startPostId: null });
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -348,6 +349,22 @@ export function AppProvider({ children }) {
     let userObj = userOrId;
     if (typeof userOrId === "string") {
       userObj = users.find((u) => u.id === userOrId || u.handle === userOrId);
+      if (!userObj) {
+        const userPostsCount = posts.filter((p) => p.userId === userOrId).length;
+        userObj = {
+          id: userOrId,
+          name: userOrId,
+          handle: userOrId,
+          avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${userOrId}`,
+          bio: `@${userOrId} Sotwe Videoları ve Paylaşımları`,
+          verified: true,
+          badgeType: "blue",
+          following: 120,
+          followers: 4500,
+          postsCount: userPostsCount
+        };
+        setUsers((prev) => [userObj, ...prev]);
+      }
     }
     if (userObj) {
       setSelectedUser(userObj);
@@ -356,6 +373,20 @@ export function AppProvider({ children }) {
 
   const closeProfile = () => {
     setSelectedUser(null);
+  };
+
+  // Vertical feed helpers (supports single user filter or all videos)
+  const openVerticalFeed = (userId = null, startPostId = null) => {
+    setVerticalFeedConfig({ userId, startPostId });
+    setSelectedUser(null); // Modal'ı kapat ve akışa geç
+    setActiveTab("vertical");
+    window.location.hash = "vertical";
+  };
+
+  const closeVerticalFeed = () => {
+    setVerticalFeedConfig({ userId: null, startPostId: null });
+    window.location.hash = "";
+    setActiveTab("all");
   };
 
   return (
@@ -398,7 +429,11 @@ export function AppProvider({ children }) {
         openLightbox,
         closeLightbox,
         openProfile,
-        closeProfile
+        closeProfile,
+        verticalFeedConfig,
+        setVerticalFeedConfig,
+        openVerticalFeed,
+        closeVerticalFeed
       }}
     >
       {children}

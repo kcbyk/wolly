@@ -5,7 +5,9 @@ import {
   Calendar, 
   CheckCircle, 
   Film, 
-  Share2 
+  Share2,
+  Play,
+  Sparkles
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { formatNumber } from "../utils/formatters";
@@ -18,7 +20,8 @@ export default function UserProfileModal() {
     posts, 
     following, 
     toggleFollow, 
-    openLightbox, 
+    openLightbox,
+    openVerticalFeed, 
     showToast 
   } = useApp();
 
@@ -170,7 +173,7 @@ export default function UserProfileModal() {
                 activeTab === "media" ? "text-white bg-[#212121]" : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              Medyalar ({userMediaItems.length})
+              Medyalar & Videolar ({userMediaItems.length})
               {activeTab === "media" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white rounded-full" />
               )}
@@ -194,36 +197,67 @@ export default function UserProfileModal() {
             )}
 
             {activeTab === "media" && (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="flex flex-col gap-3">
                 {userMediaItems.length > 0 ? (
-                  userMediaItems.map((item, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => openLightbox(userMediaItems, idx, item.parentPost)}
-                      className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group bg-black border border-white/10"
-                    >
-                      {item.type === "video" ? (
-                        <div className="w-full h-full relative">
-                          <img
-                            src={item.poster || "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&auto=format&fit=crop&q=80"}
-                            alt="Video Thumbnail"
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <Film className="w-6 h-6 text-white" />
-                          </div>
-                        </div>
-                      ) : (
-                        <img
-                          src={item.url}
-                          alt="User Media"
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <>
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-xs font-semibold text-slate-400">
+                        {userMediaItems.filter(m => m.type === "video").length} Video • Dikey formatta izlemek için tıklayın
+                      </span>
                     </div>
-                  ))
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                      {userMediaItems.map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            if (item.type === "video") {
+                              openVerticalFeed(selectedUser.id, item.parentPost?.id);
+                            } else {
+                              openLightbox(userMediaItems, idx, item.parentPost);
+                            }
+                          }}
+                          className="relative aspect-square sm:aspect-[9/14] rounded-2xl overflow-hidden cursor-pointer group bg-[#101010] border border-white/10 hover:border-white/40 transition-all shadow-lg active:scale-95"
+                        >
+                          {item.type === "video" ? (
+                            <div className="w-full h-full relative">
+                              <video
+                                src={item.url}
+                                muted
+                                playsInline
+                                preload="metadata"
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex flex-col justify-between p-2.5">
+                                <div className="flex justify-end">
+                                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/70 backdrop-blur-md text-white border border-white/20">
+                                    HD
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between text-white">
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                                      <Play className="w-2.5 h-2.5 fill-white text-white translate-x-0.5" />
+                                    </div>
+                                    <span className="text-[11px] font-bold">{formatNumber(item.parentPost?.stats?.likes || 150)}</span>
+                                  </div>
+                                  <span className="text-[10px] text-slate-300 font-mono">Dikey Aç 🎬</span>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <img
+                              src={item.url}
+                              alt="User Media"
+                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              loading="lazy"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 ) : (
                   <div className="col-span-3 text-center py-12 text-slate-500 text-sm">
                     Henüz medya yüklenmemiş.

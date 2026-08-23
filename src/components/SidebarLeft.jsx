@@ -12,7 +12,6 @@ export default function SidebarLeft({ isOpenMobile, onCloseMobile }) {
   const navItems = [
     { id: "all", label: "Akış", icon: Home, count: posts.length },
     { id: "vertical", label: "Dikey Video", icon: RectangleVertical, count: verticalCount },
-    { id: "admin", label: "Admin & Otomasyon", icon: Sparkles, isSpecial: true },
   ];
 
   const handleSelectTab = (tabId) => {

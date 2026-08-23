@@ -253,15 +253,36 @@ const VerticalVideoCard = memo(function VerticalVideoCard({ post, isActive, isNe
 });
 
 export default function VerticalFeed({ onBack }) {
-  const { posts, showToast } = useApp();
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
+  const { posts, verticalFeedConfig, closeVerticalFeed, showToast } = useApp();
   const containerRef = useRef(null);
   const isScrollingRef = useRef(false);
+  const [isMuted, setIsMuted] = useState(false);
 
-  const videoPosts = posts.filter(
-    (p) => p.mediaType === "video" || p.media?.some((m) => m.type === "video")
-  );
+  const targetUserId = verticalFeedConfig?.userId;
+  const startPostId = verticalFeedConfig?.startPostId;
+
+  // Filter videos (either by single profile or all)
+  const videoPosts = posts.filter((p) => {
+    const isVideo = p.mediaType === "video" || p.media?.some((m) => m.type === "video");
+    if (!isVideo) return false;
+    if (targetUserId) return p.userId === targetUserId;
+    return true;
+  });
+
+  const [activeIndex, setActiveIndex] = useState(() => {
+    if (startPostId && videoPosts.length > 0) {
+      const foundIdx = videoPosts.findIndex((p) => p.id === startPostId);
+      return foundIdx !== -1 ? foundIdx : 0;
+    }
+    return 0;
+  });
+
+  // Scroll to starting post on mount
+  useEffect(() => {
+    if (containerRef.current && activeIndex > 0) {
+      containerRef.current.scrollTop = activeIndex * window.innerHeight;
+    }
+  }, []);
 
   const currentPost = videoPosts[activeIndex];
   const currentVideoMedia = currentPost?.media?.find((m) => m.type === "video");
@@ -298,14 +319,20 @@ export default function VerticalFeed({ onBack }) {
   };
 
   const handleBack = () => {
-    window.location.hash = "";
+    closeVerticalFeed();
     if (onBack) onBack();
   };
 
   if (videoPosts.length === 0) {
     return (
-      <div className="flex items-center justify-center h-screen text-slate-500 text-sm bg-black">
-        Dikey video bulunamadı.
+      <div className="flex flex-col items-center justify-center h-screen text-slate-400 text-sm bg-black gap-4 p-4 text-center">
+        <p>Bu profilde henüz dikey video bulunamadı.</p>
+        <button
+          onClick={handleBack}
+          className="px-6 py-2.5 rounded-full bg-white text-black font-bold text-sm hover:bg-slate-200 transition-all"
+        >
+          Geri Dön
+        </button>
       </div>
     );
   }
@@ -319,21 +346,24 @@ export default function VerticalFeed({ onBack }) {
         style={{
           paddingTop: "max(env(safe-area-inset-top), 14px)",
           paddingBottom: "14px",
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%)",
           pointerEvents: "none",
         }}
       >
         {/* Left: Geri Tuşu */}
-        {onBack && (
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-1.5 p-2 text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] active:scale-90 hover:opacity-80 transition-transform cursor-pointer select-none"
-            style={{ pointerEvents: "auto" }}
-          >
-            <ArrowLeft className="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
-            <span>Akış</span>
-          </button>
-        )}
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 p-2 text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] active:scale-90 hover:opacity-80 transition-transform cursor-pointer select-none bg-black/40 backdrop-blur-md rounded-full px-3.5 border border-white/15"
+          style={{ pointerEvents: "auto" }}
+        >
+          <ArrowLeft className="w-4 h-4 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]" />
+          <span>{targetUserId ? `@${targetUserId}` : "Akış"}</span>
+        </button>
+
+        {/* Center: Video Index Counter */}
+        <div className="text-xs font-mono text-white/90 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 hidden sm:block">
+          {activeIndex + 1} / {videoPosts.length}
+        </div>
 
         {/* Right: Ses & İndirme Butonları */}
         <div className="flex items-center gap-3" style={{ pointerEvents: "auto" }}>
