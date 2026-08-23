@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Play, Volume2, VolumeX, Download, ArrowLeft, Loader2, Heart } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { downloadMedia, formatNumber } from "../utils/formatters";
+import { buildForYouFeed } from "../utils/algorithm";
 
 const VerticalVideoCard = memo(function VerticalVideoCard({ 
   post, 
@@ -368,13 +369,17 @@ export default function VerticalFeed({ onBack }) {
   const targetUserId = verticalFeedConfig?.userId;
   const startPostId = verticalFeedConfig?.startPostId;
 
-  // Filter videos (either by single profile or all)
-  const videoPosts = posts.filter((p) => {
+  // Filter videos (either by single profile or mixed For You feed)
+  const rawVideoPosts = posts.filter((p) => {
     const isVideo = p.mediaType === "video" || p.media?.some((m) => m.type === "video");
     if (!isVideo) return false;
     if (targetUserId) return p.userId === targetUserId;
     return true;
   });
+
+  const videoPosts = React.useMemo(() => {
+    return targetUserId ? rawVideoPosts : buildForYouFeed(rawVideoPosts);
+  }, [rawVideoPosts, targetUserId]);
 
   const [activeIndex, setActiveIndex] = useState(() => {
     if (startPostId && videoPosts.length > 0) {

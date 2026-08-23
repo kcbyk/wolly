@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { AppProvider, useApp } from "./context/AppContext";
 import Navbar from "./components/Navbar";
 import SidebarLeft from "./components/SidebarLeft";
@@ -12,7 +12,8 @@ import CommentsModal from "./components/CommentsModal";
 import CreatePostModal from "./components/CreatePostModal";
 import Toast from "./components/Toast";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { Search, X } from "lucide-react";
+import { Search, X, Compass, Flame, Clock } from "lucide-react";
+import { buildForYouFeed, buildTrendingFeed } from "./utils/algorithm";
 
 function MainFeed() {
   const { 
@@ -28,11 +29,12 @@ function MainFeed() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [feedFilter, setFeedFilter] = useState("foryou"); // 'foryou' | 'latest' | 'popular'
 
-  // Reset pagination on search change
+  // Reset pagination on filter or search change
   useEffect(() => {
     setVisibleCount(12);
-  }, [searchQuery]);
+  }, [searchQuery, feedFilter]);
 
   // Smooth Infinite Scroll
   useEffect(() => {
@@ -41,7 +43,7 @@ function MainFeed() {
         window.innerHeight + window.scrollY >=
         document.documentElement.scrollHeight - 900
       ) {
-        setVisibleCount((prev) => Math.min(prev + 10, posts.length));
+        setVisibleCount((prev) => Math.min(prev + 12, posts.length));
       }
     };
 
@@ -54,7 +56,6 @@ function MainFeed() {
     const handleHash = () => {
       const hashStr = window.location.hash.replace("#", "");
 
-      // Check if redirected from Bookmarklet with import payload
       if (hashStr.startsWith("import=")) {
         try {
           const raw = decodeURIComponent(hashStr.replace("import=", ""));
@@ -118,14 +119,22 @@ function MainFeed() {
     return () => window.removeEventListener("hashchange", handleHash);
   }, [importScrapedData, showToast, setActiveTab]);
 
-  // Search filtering
-  const filteredPosts = posts.filter((post) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase().trim();
-    const matchContent = post.content?.toLowerCase().includes(query);
-    const matchUser = post.userId?.toLowerCase().includes(query);
-    return matchContent || matchUser;
-  });
+  // Keşfet / Algoritma İşleme
+  const processedPosts = useMemo(() => {
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      return posts.filter(
+        (p) => p.content?.toLowerCase().includes(q) || p.userId?.toLowerCase().includes(q)
+      );
+    }
+
+    if (feedFilter === "foryou") {
+      return buildForYouFeed(posts);
+    } else if (feedFilter === "popular") {
+      return buildTrendingFeed(posts);
+    }
+    return posts; // 'latest'
+  }, [posts, searchQuery, feedFilter]);
 
   // 1. Admin & Otomasyon Paneli
   if (activeTab === "admin") {
@@ -182,6 +191,47 @@ function MainFeed() {
         {/* Main Content Area */}
         <main className="flex-1 max-w-3xl min-w-0 flex flex-col gap-5">
 
+          {/* Feed Filter Bar: Keşfet (Senin İçin) / En Yeniler / Popüler */}
+          {!searchQuery && (
+            <div className="glass-card rounded-2xl p-1.5 flex items-center justify-between border border-white/10 bg-[#141414] shadow-lg">
+              <button
+                onClick={() => setFeedFilter("foryou")}
+                className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  feedFilter === "foryou"
+                    ? "bg-white text-black shadow-md font-extrabold"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Compass className={`w-4 h-4 ${feedFilter === "foryou" ? "text-black" : "text-slate-400"}`} />
+                <span>Senin İçin (Keşfet)</span>
+              </button>
+
+              <button
+                onClick={() => setFeedFilter("popular")}
+                className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  feedFilter === "popular"
+                    ? "bg-white text-black shadow-md font-extrabold"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Flame className={`w-4 h-4 ${feedFilter === "popular" ? "text-black" : "text-amber-400"}`} />
+                <span>Popüler</span>
+              </button>
+
+              <button
+                onClick={() => setFeedFilter("latest")}
+                className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  feedFilter === "latest"
+                    ? "bg-white text-black shadow-md font-extrabold"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Clock className={`w-4 h-4 ${feedFilter === "latest" ? "text-black" : "text-slate-400"}`} />
+                <span>En Yeniler</span>
+              </button>
+            </div>
+          )}
+
           {/* Active Search Indicator */}
           {searchQuery && (
             <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#141414] border border-white/15 text-slate-200 text-xs backdrop-blur-md">
@@ -201,7 +251,7 @@ function MainFeed() {
           )}
 
           {/* Feed Posts */}
-          {filteredPosts.length > 0 ? (
+          {processedPosts.length > 0 ? (
             <>
               <div
                 className={
@@ -210,19 +260,19 @@ function MainFeed() {
                     : "flex flex-col gap-4"
                 }
               >
-                {filteredPosts.slice(0, visibleCount).map((post) => (
+                {processedPosts.slice(0, visibleCount).map((post) => (
                   <PostCard key={post.id} post={post} />
                 ))}
               </div>
 
               {/* End of list or Loading More Indicator */}
-              {visibleCount < filteredPosts.length && (
+              {visibleCount < processedPosts.length && (
                 <div className="py-6 text-center">
                   <button
                     onClick={() => setVisibleCount((prev) => prev + 12)}
                     className="px-6 py-2.5 rounded-full bg-[#181818] hover:bg-[#222222] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-lg"
                   >
-                    Daha Fazla Göster ({filteredPosts.length - visibleCount} video daha)
+                    Daha Fazla Göster ({processedPosts.length - visibleCount} video daha)
                   </button>
                 </div>
               )}
