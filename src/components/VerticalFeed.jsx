@@ -1,16 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
-import { Play, Volume2, VolumeX, Download, ArrowLeft, Loader2 } from "lucide-react";
+import { Play, Volume2, VolumeX, Download, ArrowLeft, Loader2, Heart } from "lucide-react";
 import { useApp } from "../context/AppContext";
-import { downloadMedia } from "../utils/formatters";
+import { downloadMedia, formatNumber } from "../utils/formatters";
 
 const VerticalVideoCard = memo(function VerticalVideoCard({ 
   post, 
   isActive, 
+  isNext,
   isNear, 
   isMuted, 
   onInView 
 }) {
-  const { users } = useApp();
+  const { users, toggleLike, likes } = useApp();
   const cardRef = useRef(null);
   const videoRef = useRef(null);
   const progressBarRef = useRef(null);
@@ -19,10 +20,14 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
   const seekTimeRef = useRef(null);
   const targetSeekPosRef = useRef(null);
   const wasPlayingRef = useRef(false);
+  const lastTapRef = useRef(0);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
+  const [showHeartAnim, setShowHeartAnim] = useState(false);
+
+  const isLiked = likes.includes(post.id);
 
   const user = users.find((u) => u.id === post.userId) || {
     name: post.userId,
@@ -32,7 +37,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
 
   const videoMedia = post.media?.find((m) => m.type === "video");
 
-  // IntersectionObserver to detect when this card is 60%+ in view
+  // TikTok Intersection Detection (triggers before full scroll completes)
   useEffect(() => {
     const el = cardRef.current;
     if (!el || !onInView) return;
@@ -43,14 +48,29 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
           onInView(post.id);
         }
       },
-      { threshold: 0.6 }
+      { threshold: 0.5 }
     );
 
     observer.observe(el);
     return () => observer.disconnect();
   }, [post.id, onInView]);
 
-  // Robust play handler (handles AbortError & browser policies smoothly)
+  // TikTok Pre-warm: If this is the upcoming next video, preload buffer immediately
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isNext && !isActive) {
+      video.preload = "auto";
+      video.muted = true;
+      // Pre-warm the media decoder stream
+      try {
+        video.load();
+      } catch (_) {}
+    }
+  }, [isNext, isActive]);
+
+  // Zero-latency play trigger
   const safePlay = useCallback(async () => {
     const video = videoRef.current;
     if (!video) return;
@@ -62,7 +82,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
       setIsBuffering(false);
     } catch (err) {
       if (err.name !== "AbortError") {
-        // Fallback to muted if unmuted autoplay was blocked
+        // Fallback to muted instant playback
         try {
           if (videoRef.current) {
             videoRef.current.muted = true;
@@ -91,13 +111,25 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     }
   }, [isActive, safePlay]);
 
-  // Sync mute state immediately
+  // Sync mute state
   useEffect(() => {
     const video = videoRef.current;
     if (video) video.muted = isMuted;
   }, [isMuted]);
 
-  const togglePlay = () => {
+  // Tap handler: single tap = play/pause, double tap = like (TikTok style)
+  const handleCardClick = (e) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 300) {
+      // Double tap -> Like with heart burst animation
+      if (!isLiked) toggleLike(post.id, e);
+      setShowHeartAnim(true);
+      setTimeout(() => setShowHeartAnim(false), 800);
+      lastTapRef.current = 0;
+      return;
+    }
+    lastTapRef.current = now;
+
     const video = videoRef.current;
     if (!video || isSeeking) return;
     if (video.paused) {
@@ -108,12 +140,11 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     }
   };
 
-  // Direct DOM progress update (Zero re-renders during video playback)
+  // Direct DOM progress update (Zero re-renders during playback)
   const handleTimeUpdate = () => {
     const video = videoRef.current;
     if (!video || !video.duration || isSeeking) return;
     
-    // Clear buffering whenever time moves
     if (isBuffering) setIsBuffering(false);
 
     const pct = (video.currentTime / video.duration) * 100;
@@ -164,7 +195,6 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     }
   };
 
-  // Mouse seek handlers
   const onMouseDown = (e) => {
     e.stopPropagation();
     const video = videoRef.current;
@@ -183,7 +213,6 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
     window.addEventListener("mouseup", onMouseUp, { once: true });
   };
 
-  // Touch seek handlers
   const onTouchStart = (e) => {
     e.stopPropagation();
     const video = videoRef.current;
@@ -213,10 +242,11 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
         height: "100dvh",
         scrollSnapAlign: "start",
         scrollSnapStop: "always",
+        contain: "strict",
       }}
-      onClick={togglePlay}
+      onClick={handleCardClick}
     >
-      {/* Mount & pre-buffer video only for active or nearby card */}
+      {/* Pre-buffered Video Player */}
       {isNear ? (
         <video
           ref={videoRef}
@@ -226,7 +256,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
           muted={isMuted}
           playsInline
           autoPlay={isActive}
-          preload={isActive ? "auto" : "metadata"}
+          preload={isActive || isNext ? "auto" : "metadata"}
           referrerPolicy="no-referrer"
           disableRemotePlayback
           disablePictureInPicture
@@ -242,7 +272,14 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
         />
       ) : (
         <div className="absolute inset-0 w-full h-full bg-black flex items-center justify-center">
-          <Play className="w-10 h-10 text-white/20" />
+          <Play className="w-10 h-10 text-white/10" />
+        </div>
+      )}
+
+      {/* Double Tap Heart Animation */}
+      {showHeartAnim && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30 animate-ping">
+          <Heart className="w-24 h-24 text-red-500 fill-red-500 drop-shadow-2xl" />
         </div>
       )}
 
@@ -266,7 +303,7 @@ const VerticalVideoCard = memo(function VerticalVideoCard({
 
       {/* Bottom overlay: User Info, Content, Progress Bar */}
       <div
-        className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-16 flex flex-col gap-2 z-20 bg-gradient-to-t from-black/90 via-black/40 to-transparent"
+        className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-16 flex flex-col gap-2 z-20 bg-gradient-to-t from-black/95 via-black/40 to-transparent"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5">
@@ -362,6 +399,26 @@ export default function VerticalFeed({ onBack }) {
     }
   }, []);
 
+  // Keyboard navigation (ArrowUp, ArrowDown, M, Space)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const next = Math.min(activeIndex + 1, videoPosts.length - 1);
+        containerRef.current?.scrollTo({ top: next * window.innerHeight, behavior: "smooth" });
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const prev = Math.max(activeIndex - 1, 0);
+        containerRef.current?.scrollTo({ top: prev * window.innerHeight, behavior: "smooth" });
+      } else if (e.key === "m" || e.key === "M") {
+        setIsMuted((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeIndex, videoPosts.length]);
+
   const currentPost = videoPosts[activeIndex];
   const currentVideoMedia = currentPost?.media?.find((m) => m.type === "video");
 
@@ -427,7 +484,7 @@ export default function VerticalFeed({ onBack }) {
               e.stopPropagation();
               setIsMuted((m) => !m);
             }}
-            title={isMuted ? "Sesi Aç" : "Sesi Kapat"}
+            title={isMuted ? "Sesi Aç (M)" : "Sesi Kapat (M)"}
             className="p-2 text-white bg-black/60 rounded-full border border-white/15 active:scale-95 transition-transform cursor-pointer shadow-lg"
           >
             {isMuted ? (
@@ -465,6 +522,7 @@ export default function VerticalFeed({ onBack }) {
             key={post.id}
             post={post}
             isActive={activeIndex === idx}
+            isNext={idx === activeIndex + 1}
             isNear={Math.abs(activeIndex - idx) <= 1}
             isMuted={isMuted}
             onInView={handleInView}
