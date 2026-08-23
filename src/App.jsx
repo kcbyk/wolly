@@ -73,7 +73,7 @@ function MainFeed() {
 
             importScrapedData(newPosts, newUser, false);
             showToast(`🎉 ${newPosts.length} video otomatik olarak aktarıldı!`);
-            window.location.hash = "all";
+            window.location.hash = "";
             setActiveTab("all");
             return;
           }
@@ -82,15 +82,19 @@ function MainFeed() {
         }
       }
 
-      if (hashStr === "admin") setActiveTab("admin");
-      else if (hashStr === "vertical") setActiveTab("vertical");
-      else if (hashStr === "all" || hashStr === "") setActiveTab("all");
+      if (hashStr === "admin") {
+        setActiveTab("admin");
+      } else if (hashStr === "vertical") {
+        setActiveTab("vertical");
+      } else if (hashStr === "all") {
+        setActiveTab("all");
+      }
     };
 
     handleHash();
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
-  }, [setActiveTab, importScrapedData, showToast]);
+  }, [importScrapedData, showToast, setActiveTab]);
 
   // Search filtering
   const filteredPosts = posts.filter((post) => {

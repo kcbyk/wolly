@@ -17,6 +17,7 @@ export default function SidebarLeft({ isOpenMobile, onCloseMobile }) {
 
   const handleSelectTab = (tabId) => {
     setActiveTab(tabId);
+    window.location.hash = tabId === "all" ? "" : tabId;
     if (onCloseMobile) onCloseMobile();
   };
 
