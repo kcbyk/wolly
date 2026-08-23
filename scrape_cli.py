@@ -223,6 +223,23 @@ async def scrape_profile(username, max_target=0):
         now_ts = int(time.time())
         posts = []
         for idx, mp4 in enumerate(clean_mp4s):
+            # Adaptive stream variants for low internet fallback
+            variants = []
+            if "720x1280" in mp4:
+                variants = [
+                    {"url": mp4, "quality": "720p"},
+                    {"url": mp4.replace("720x1280", "480x852"), "quality": "480p"},
+                    {"url": mp4.replace("720x1280", "320x568"), "quality": "360p"},
+                ]
+            elif "1080x1920" in mp4:
+                variants = [
+                    {"url": mp4.replace("1080x1920", "720x1280"), "quality": "720p"},
+                    {"url": mp4, "quality": "1080p"},
+                    {"url": mp4.replace("1080x1920", "480x852"), "quality": "480p"},
+                ]
+            else:
+                variants = [{"url": mp4, "quality": "auto"}]
+
             posts.append({
                 "id": f"{username}_{idx+1}_{now_ts}",
                 "userId": username,
@@ -232,6 +249,7 @@ async def scrape_profile(username, max_target=0):
                 "media": [{
                     "type": "video",
                     "url": mp4,
+                    "variants": variants,
                     "poster": "",
                     "alt": f"@{username} video"
                 }],
