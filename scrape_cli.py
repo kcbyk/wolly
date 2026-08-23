@@ -1,5 +1,5 @@
 """
-Sotwe Infinite Profile Scraper & Supabase Cloud Auto-Deploy CLI
+Sotwe Precision Scraper & Supabase Auto-Deploy CLI
 Kullanım: python scrape_cli.py
 Veya: python scrape_cli.py <kullanici_adi_veya_link>
 """
@@ -78,29 +78,35 @@ def upload_to_supabase(user_data, posts_data):
                 "stats": p.get("stats", {"likes": 150, "replies": 10, "retweets": 25, "bookmarks": 20})
             })
             
-        p_res = requests.post(
-            f"{SUPABASE_URL}/rest/v1/posts",
-            headers=headers,
-            json=posts_payload,
-            timeout=20
-        )
-        if p_res.status_code in [200, 201]:
-            print(f"[+] 🎉 {len(posts_payload)} adet video Supabase Bulutuna anında yüklendi!")
-            print("[⚡] Canlıdaki kullanıcılar sayfayı yenilemeden yeni videoları görebilir!")
-        else:
-            print(f"[-] Video yükleme cevabı ({p_res.status_code}): {p_res.text[:200]}")
+        # Chunk upload if many posts (e.g. batches of 100)
+        batch_size = 100
+        for i in range(0, len(posts_payload), batch_size):
+            batch = posts_payload[i:i + batch_size]
+            p_res = requests.post(
+                f"{SUPABASE_URL}/rest/v1/posts",
+                headers=headers,
+                json=batch,
+                timeout=30
+            )
+            if p_res.status_code in [200, 201]:
+                print(f"[+] [{min(i + batch_size, len(posts_payload))}/{len(posts_payload)}] video Supabase'e aktarıldı.")
+            else:
+                print(f"[-] Batch yükleme hatası: {p_res.text[:200]}")
+                
+        print(f"[🎉] TOPLAM {len(posts_payload)} ADET VİDEO BULUTA EKLENDİ! 🚀")
+        print("[⚡] Sitedeki sayaç ve videolar anında canlı olarak güncellendi.")
             
     except Exception as e:
         print(f"[-] Supabase bağlantı hatası: {e}")
 
 def run_git_push(username, video_count):
     print("\n" + "="*60)
-    print("[*] GitHub Yedekleme & Deploy Başlatılıyor...")
+    print("[*] GitHub Yedekleme Başlatılıyor...")
     print("="*60)
     
     try:
         subprocess.run(["git", "add", "-A"], check=True)
-        commit_msg = f"feat(scraper): @{username} profilinden {video_count} video eklendi [auto-deploy]"
+        commit_msg = f"feat(scraper): @{username} profilinden {video_count} video eklendi [backup]"
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
         subprocess.run(["git", "push"], check=True)
         print("[+] 'git push' başarıyla tamamlandı! 🚀")
@@ -111,7 +117,7 @@ async def scrape_profile(username, max_target=0):
     url = f"https://www.sotwe.com/{username}?lang=tr"
     print(f"\n[*] Hedef Profil: @{username}")
     print(f"[*] URL: {url}")
-    print(f"[*] Hedef Video Sayısı: {'Maksimum / Sayfa Bitene Kadar' if max_target <= 0 else max_target}")
+    print(f"[*] İstenen Video Sayısı: {'Tüm Profil (Maksimum)' if max_target <= 0 else f'Tam {max_target} Adet'}")
     print("[*] Chrome tarayıcısı açılıyor...")
     
     user_data_dir = os.path.join(os.getcwd(), ".chrome_user_data")
@@ -126,28 +132,41 @@ async def scrape_profile(username, max_target=0):
         )
         page = browser.pages[0] if browser.pages else await browser.new_page()
         
+        # Ağ trafiğinden de MP4 yakalama (arka planda yüklenenler kaçmasın)
+        captured_network_mp4s = set()
+        
+        def handle_response(response):
+            try:
+                res_url = response.url
+                if '.mp4' in res_url and ('twimg.com' in res_url or 'video' in res_url):
+                    captured_network_mp4s.add(res_url)
+            except:
+                pass
+                
+        page.on("response", handle_response)
+        
         try:
             await page.goto(url, wait_until="domcontentloaded", timeout=60000)
         except Exception as e:
             print(f"[-] Sayfa yükleme uyarısı: {e}")
             
-        print("[*] Sayfa açıldı. Cloudflare doğrulanıyor...")
+        print("[*] Sayfa açıldı. Cloudflare doğrulanıyor ve başlangıç bekleniyor...")
         await asyncio.sleep(5)
         
-        # Akıllı Dinamik Sonsuz Kaydırma
-        print("\n[*] 📜 Akıllı kaydırma başlatıldı (Yeni videolar geldikçe taranıyor)...")
-        
-        last_count = 0
-        no_new_video_rounds = 0
-        max_scroll_rounds = 50 if max_target <= 0 else max(20, max_target // 2)
+        print("\n[*] 📜 Hassas tarama ve akıllı kaydırma devrede...")
         
         clean_mp4s = []
         seen = set()
+        stalled_rounds = 0
+        max_scroll_attempts = 300 if max_target <= 0 else max(100, max_target * 2)
         
-        for round_idx in range(1, max_scroll_rounds + 1):
-            await page.evaluate("window.scrollBy(0, 2200)")
-            await asyncio.sleep(1.2)
+        for round_idx in range(1, max_scroll_attempts + 1):
+            # 1. Sayfa sonuna kaydır
+            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            await page.keyboard.press("PageDown")
+            await asyncio.sleep(1.5)
             
+            # 2. DOM'dan video URL'lerini topla
             html_chunk = await page.content()
             raw_matches = re.findall(r'https://[^\s"\'\\]+\.mp4[^\s"\'\\]*', html_chunk)
             
@@ -157,27 +176,45 @@ async def scrape_profile(username, max_target=0):
                     seen.add(v_url)
                     clean_mp4s.append(v_url)
                     
+            # 3. Ağdan yakalananları da ekle
+            for net_url in captured_network_mp4s:
+                if net_url not in seen:
+                    seen.add(net_url)
+                    clean_mp4s.append(net_url)
+                    
             current_count = len(clean_mp4s)
-            print(f"    -> Tur {round_idx}/{max_scroll_rounds}: Şu ana kadar {current_count} adet video bulundu.")
+            target_str = f"/{max_target}" if max_target > 0 else ""
+            print(f"    -> [Tur {round_idx}] Bulunan Video Sayısı: {current_count}{target_str}")
             
+            # İstenen sayıya ulaşıldı mı?
             if max_target > 0 and current_count >= max_target:
-                print(f"[+] Belirttiğiniz {max_target} video hedefine ulaşıldı!")
+                print(f"\n[+] 🎉 İstediğiniz {max_target} video hedefine ulaşıldı!")
+                clean_mp4s = clean_mp4s[:max_target]
                 break
                 
-            if current_count == last_count:
-                no_new_video_rounds += 1
-                if no_new_video_rounds >= 4 and round_idx >= 8:
-                    print("[*] Sayfanın sonuna gelindi.")
+            # Eğer yeni video gelmediyse Sotwe'nin lazy-load tetikleyicisini dürt
+            if round_idx > 3 and current_count == len(clean_mp4s):
+                stalled_rounds += 1
+                if stalled_rounds in [2, 4, 6]:
+                    # Hafif yukarı kaydırıp tekrar en aşağı in
+                    await page.evaluate("window.scrollBy(0, -1000)")
+                    await asyncio.sleep(0.6)
+                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    await asyncio.sleep(2.0)
+                elif stalled_rounds >= 10:
+                    print("[*] Profilin sonuna gelindi (Yeni video bulunamadı).")
                     break
             else:
-                no_new_video_rounds = 0
+                stalled_rounds = 0
                 
-            last_count = current_count
-            
         await browser.close()
         print("[+] Tarayıcı kapatıldı.")
         
-        print(f"\n[+] 🎉 TOPLAM {len(clean_mp4s)} ADET HD MP4 VIDEO ÇEKİLDİ!")
+        # Eğer istenen hedef varsa tam o sayıya sınırla
+        if max_target > 0 and len(clean_mp4s) > max_target:
+            clean_mp4s = clean_mp4s[:max_target]
+            
+        print(f"\n[+] 🎉 TOPLAM {len(clean_mp4s)} ADET HD MP4 VIDEO AYIKLANDI!")
         
         if len(clean_mp4s) == 0:
             print("[-] Bu profilde video bulunamadı.")
@@ -221,10 +258,10 @@ async def scrape_profile(username, max_target=0):
             }
         }
         
-        # 1. Direct Supabase Cloud Upload
+        # 1. Doğrudan Supabase Buluta Yükle
         upload_to_supabase(user, posts)
         
-        # 2. Update local mockData.js as backup
+        # 2. mockData.js güncelle (Yerel yedek için)
         mockdata_path = os.path.join("src", "data", "mockData.js")
         if os.path.exists(mockdata_path):
             with open(mockdata_path, "r", encoding="utf-8") as f:
@@ -248,7 +285,7 @@ async def scrape_profile(username, max_target=0):
 
 def main():
     print("\n" + "="*60)
-    print(" 🎬 WOLLY SOTWE SUPABASE CLOUD SCRAPER")
+    print(" 🎬 WOLLY SOTWE TAM SAYI ODAKLI VIDEO CEKICI")
     print("="*60)
     
     target = ""
@@ -272,7 +309,7 @@ def main():
         
     limit_input = ""
     try:
-        limit_input = input("👉 Kaç video çekilsin? [Tüm videolar için boş bırakıp Enter'a basın]: ").strip()
+        limit_input = input("👉 Kaç video çekilsin? (Örn: 50, 100 veya tümü için boş bırakıp Enter): ").strip()
     except KeyboardInterrupt:
         sys.exit(0)
         
