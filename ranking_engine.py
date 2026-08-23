@@ -2,16 +2,6 @@
 WOLLY PRE-RANKING ENGINE v1.0
 Supabase'deki tum videolara puan hesaplayip yazar.
 Scraper her calistiginda otomatik tetiklenir.
-
-Puanlama Faktorleri:
-  1. Profil Populerligi  (takipci sayisi)        -> Agirlik: 30%
-  2. Icerik Tazeligi     (ne kadar yeni?)         -> Agirlik: 25%
-  3. Cesitlilik Skoru    (ayni profil ust uste?)  -> Agirlik: 25%
-  4. Engagement Skoru    (begeni/retweet/yorum)   -> Agirlik: 20%
-
-Formul:
-  score = (pop * 0.30) + (fresh * 0.25) + (div * 0.25) + (eng * 0.20)
-  Normalize edilmis -> 0.0 ... 1.0 araligi
 """
 
 import sys
@@ -56,15 +46,11 @@ def fetch_all(table, select="*", order=None, page_size=1000):
         offset += page_size
     return all_rows
 
-# --- Normalize Yardimcilari ---
-
 def sigmoid(x, k=1.0):
     try:
         return 1.0 / (1.0 + math.exp(-k * x))
     except OverflowError:
         return 0.0 if x < 0 else 1.0
-
-# --- Faktor Hesaplayicilar ---
 
 def popularity_score(user_followers):
     if not user_followers or user_followers <= 0:
@@ -134,38 +120,41 @@ def compute_scores(posts, users):
     scored.sort(key=lambda x: x["score"], reverse=True)
     return scored
 
-# --- Supabase'e Yaz ---
+# --- Supabase'e Hizli Batch Yaz ---
 
 def write_scores_to_supabase(scored_posts):
-    print("[*] Puanlar Supabase'e isleniyor...")
-    batch_size = 50
-    success_count = 0
-    fail_count = 0
-
+    print("[*] Puanlar Supabase'e toplu olarak isleniyor...")
+    
+    # Direct fast batch update via REST API upsert on (id)
+    batch_size = 100
+    success = 0
+    
     for i in range(0, len(scored_posts), batch_size):
         batch = scored_posts[i:i + batch_size]
-        for item in batch:
-            patch_url = f"{SUPABASE_URL}/rest/v1/posts?id=eq.{item['id']}"
-            patch_headers = {**HEADERS, "Prefer": "return=minimal"}
-            try:
-                r = requests.patch(
-                    patch_url,
-                    headers=patch_headers,
-                    json={"score": item["score"]},
-                    timeout=10
-                )
-                if r.status_code in [200, 204]:
-                    success_count += 1
-                else:
-                    fail_count += 1
-            except Exception:
-                fail_count += 1
+        payload = [{"id": item["id"], "score": item["score"]} for item in batch]
+        
+        url = f"{SUPABASE_URL}/rest/v1/posts"
+        headers = {
+            **HEADERS,
+            "Prefer": "resolution=merge-duplicates",
+        }
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=20)
+            if r.status_code in [200, 201]:
+                success += len(payload)
+            else:
+                # Fallback to individual patch if partial payload
+                for item in batch:
+                    patch_url = f"{SUPABASE_URL}/rest/v1/posts?id=eq.{item['id']}"
+                    pr = requests.patch(patch_url, headers={**HEADERS, "Prefer": "return=minimal"}, json={"score": item["score"]}, timeout=5)
+                    if pr.status_code in [200, 204]:
+                        success += 1
+        except Exception as e:
+            print(f"[-] Batch update error: {e}")
+            
+        print(f"    [{min(i + batch_size, len(scored_posts))}/{len(scored_posts)}] video guncellendi...")
 
-        print(f"    [{min(i + batch_size, len(scored_posts))}/{len(scored_posts)}] tamamlandi...")
-
-    print(f"[+] {success_count} video basariyla puanlandi!")
-    if fail_count > 0:
-        print(f"[!] {fail_count} videoda guncelleme atlandi (kolon henuz olusmamis olabilir).")
+    print(f"[+] Toplam {success} video basariyla puanlandi!")
 
 # --- Ana Giris ---
 
