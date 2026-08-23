@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { MOCK_POSTS, MOCK_USERS } from "../data/mockData";
+import { getPostsFromSupabase, getUsersFromSupabase, supabase } from "../utils/supabase";
 import confetti from "canvas-confetti";
 
 const AppContext = createContext(null);
@@ -36,6 +37,60 @@ export function AppProvider({ children }) {
     }
   });
 
+  // Load from Supabase Cloud on mount & subscribe to realtime updates
+  useEffect(() => {
+    let isMounted = true;
+    async function loadCloudData() {
+      try {
+        const [cloudPosts, cloudUsers] = await Promise.all([
+          getPostsFromSupabase(0, 100),
+          getUsersFromSupabase()
+        ]);
+        if (isMounted) {
+          if (cloudPosts && cloudPosts.length > 0) {
+            setPosts(cloudPosts);
+          }
+          if (cloudUsers && cloudUsers.length > 0) {
+            setUsers(cloudUsers);
+          }
+        }
+      } catch (err) {
+        console.warn("Supabase cloud load error:", err);
+      }
+    }
+
+    loadCloudData();
+
+    // Supabase Realtime channel for instant live video additions
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'posts' },
+        (payload) => {
+          const p = payload.new;
+          if (p) {
+            const formatted = {
+              id: p.id,
+              userId: p.user_id,
+              content: p.content,
+              createdAt: p.created_at || "Yeni",
+              mediaType: p.media_type || "video",
+              media: p.media || [],
+              stats: p.stats || { likes: 100, replies: 10, retweets: 20, bookmarks: 15 }
+            };
+            setPosts((prev) => [formatted, ...prev.filter((x) => x.id !== formatted.id)]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const [bookmarks, setBookmarks] = useState(() => {
     const saved = localStorage.getItem("sotwe_bookmarks");
     return saved ? JSON.parse(saved) : [];
@@ -63,7 +118,7 @@ export function AppProvider({ children }) {
 
   // Modals state
   const [selectedUser, setSelectedUser] = useState(null);
-  const [lightboxData, setLightboxData] = useState(null); // { mediaList: [], activeIndex: 0, post: null }
+  const [lightboxData, setLightboxData] = useState(null);
   const [commentsModalPost, setCommentsModalPost] = useState(null);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [toast, setToast] = useState(null);

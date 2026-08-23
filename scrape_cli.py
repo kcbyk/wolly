@@ -1,5 +1,5 @@
 """
-Sotwe Infinite Profile Scraper & Auto-Deploy CLI
+Sotwe Infinite Profile Scraper & Supabase Cloud Auto-Deploy CLI
 Kullanım: python scrape_cli.py
 Veya: python scrape_cli.py <kullanici_adi_veya_link>
 """
@@ -11,7 +11,11 @@ import json
 import time
 import re
 import subprocess
+import requests
 from playwright.async_api import async_playwright
+
+SUPABASE_URL = "https://tnyqnqucjywknquhbwbg.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRueXFucXVjanl3a25xdWhid2JnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzQ1OTkwNSwiZXhwIjoyMTAzMDM1OTA1fQ.H609VYClmuWrcW68OegHVdHjLun0-nNlawAymHPZayY"
 
 def extract_handle(input_str):
     clean = input_str.strip()
@@ -22,30 +26,86 @@ def extract_handle(input_str):
     clean = re.split(r'[?#/]', clean)[0]
     return clean.strip()
 
+def upload_to_supabase(user_data, posts_data):
+    print("\n" + "="*60)
+    print("[*] ☁️ Supabase Bulut Veritabanına Yükleniyor...")
+    print("="*60)
+    
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates"
+    }
+    
+    try:
+        # 1. Upsert User
+        user_payload = {
+            "id": user_data["id"],
+            "name": user_data["name"],
+            "handle": user_data["handle"],
+            "avatar": user_data.get("avatar", ""),
+            "banner": user_data.get("banner", ""),
+            "bio": user_data.get("bio", ""),
+            "verified": user_data.get("verified", True),
+            "badge_type": user_data.get("badgeType", "blue"),
+            "followers": user_data.get("stats", {}).get("followers", 5000),
+            "following": user_data.get("stats", {}).get("following", 150),
+            "posts_count": len(posts_data)
+        }
+        
+        u_res = requests.post(
+            f"{SUPABASE_URL}/rest/v1/users",
+            headers=headers,
+            json=user_payload,
+            timeout=15
+        )
+        if u_res.status_code in [200, 201]:
+            print(f"[+] Profil Supabase'e kaydedildi: @{user_data['id']}")
+        else:
+            print(f"[-] Profil yükleme cevabı ({u_res.status_code}): {u_res.text[:200]}")
+            
+        # 2. Upsert Posts
+        posts_payload = []
+        for p in posts_data:
+            posts_payload.append({
+                "id": p["id"],
+                "user_id": p["userId"],
+                "content": p["content"],
+                "created_at": p.get("createdAt", "Yeni"),
+                "media_type": p.get("mediaType", "video"),
+                "media": p.get("media", []),
+                "stats": p.get("stats", {"likes": 150, "replies": 10, "retweets": 25, "bookmarks": 20})
+            })
+            
+        p_res = requests.post(
+            f"{SUPABASE_URL}/rest/v1/posts",
+            headers=headers,
+            json=posts_payload,
+            timeout=20
+        )
+        if p_res.status_code in [200, 201]:
+            print(f"[+] 🎉 {len(posts_payload)} adet video Supabase Bulutuna anında yüklendi!")
+            print("[⚡] Canlıdaki kullanıcılar sayfayı yenilemeden yeni videoları görebilir!")
+        else:
+            print(f"[-] Video yükleme cevabı ({p_res.status_code}): {p_res.text[:200]}")
+            
+    except Exception as e:
+        print(f"[-] Supabase bağlantı hatası: {e}")
+
 def run_git_push(username, video_count):
     print("\n" + "="*60)
-    print("[*] Otomatik GitHub Push & Vercel Deploy Başlatılıyor...")
+    print("[*] GitHub Yedekleme & Deploy Başlatılıyor...")
     print("="*60)
     
     try:
-        # 1. git add
         subprocess.run(["git", "add", "-A"], check=True)
-        print("[+] 'git add -A' tamamlandı.")
-        
-        # 2. git commit
         commit_msg = f"feat(scraper): @{username} profilinden {video_count} video eklendi [auto-deploy]"
         subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-        print(f"[+] 'git commit' tamamlandı: {commit_msg}")
-        
-        # 3. git push
         subprocess.run(["git", "push"], check=True)
         print("[+] 'git push' başarıyla tamamlandı! 🚀")
-        print("\n[🎉] Tebrikler! Vercel otomatik deploy başlattı.")
-        print("[🌐] Siteniz 1-2 dakika içinde canlıda güncellenecektir!")
-    except subprocess.CalledProcessError as e:
-        print(f"[-] Git push uyarısı/hatası: {e}")
     except Exception as e:
-        print(f"[-] Beklenmeyen hata: {e}")
+        print(f"[-] Git push notu: {e}")
 
 async def scrape_profile(username, max_target=0):
     url = f"https://www.sotwe.com/{username}?lang=tr"
@@ -88,7 +148,6 @@ async def scrape_profile(username, max_target=0):
             await page.evaluate("window.scrollBy(0, 2200)")
             await asyncio.sleep(1.2)
             
-            # Ara kontrol
             html_chunk = await page.content()
             raw_matches = re.findall(r'https://[^\s"\'\\]+\.mp4[^\s"\'\\]*', html_chunk)
             
@@ -101,16 +160,14 @@ async def scrape_profile(username, max_target=0):
             current_count = len(clean_mp4s)
             print(f"    -> Tur {round_idx}/{max_scroll_rounds}: Şu ana kadar {current_count} adet video bulundu.")
             
-            # Hedefe ulaşıldı mı?
             if max_target > 0 and current_count >= max_target:
                 print(f"[+] Belirttiğiniz {max_target} video hedefine ulaşıldı!")
                 break
                 
-            # Sayfa sonuna gelindi mi? (3 tur üst üste yeni video gelmediyse)
             if current_count == last_count:
                 no_new_video_rounds += 1
                 if no_new_video_rounds >= 4 and round_idx >= 8:
-                    print("[*] Sayfanın sonuna gelindi (Artık yeni video yüklenmiyor).")
+                    print("[*] Sayfanın sonuna gelindi.")
                     break
             else:
                 no_new_video_rounds = 0
@@ -164,7 +221,10 @@ async def scrape_profile(username, max_target=0):
             }
         }
         
-        # Update mockData.js
+        # 1. Direct Supabase Cloud Upload
+        upload_to_supabase(user, posts)
+        
+        # 2. Update local mockData.js as backup
         mockdata_path = os.path.join("src", "data", "mockData.js")
         if os.path.exists(mockdata_path):
             with open(mockdata_path, "r", encoding="utf-8") as f:
@@ -176,7 +236,6 @@ async def scrape_profile(username, max_target=0):
             cur_users = json.loads(users_match.group(1)) if users_match else []
             cur_posts = json.loads(posts_match.group(1)) if posts_match else []
             
-            # Bu kullanıcının eski gönderilerini yenilerle değiştir veya üstüne ekle
             merged_users = [user] + [u for u in cur_users if u["id"] != username]
             merged_posts = posts + [p for p in cur_posts if p["userId"] != username]
             
@@ -184,14 +243,12 @@ async def scrape_profile(username, max_target=0):
             with open(mockdata_path, "w", encoding="utf-8") as f:
                 f.write(new_code)
                 
-            print(f"[+] mockData.js güncellendi! Veritabanındaki toplam video sayısı: {len(merged_posts)}")
-            
-            # Otomatik Git Push & Deploy
-            run_git_push(username, len(posts))
+        # 3. Git Push
+        run_git_push(username, len(posts))
 
 def main():
     print("\n" + "="*60)
-    print(" 🎬 WOLLY SOTWE SINIRSIZ VIDEO CEKICI & AUTO-DEPLOY")
+    print(" 🎬 WOLLY SOTWE SUPABASE CLOUD SCRAPER")
     print("="*60)
     
     target = ""
