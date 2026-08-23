@@ -56,6 +56,16 @@
   scrollbar-width: none;
 }
 
+/* Disable internal browser media overlays (Cast, Remote Playback, PiP overlay) */
+video::-internal-media-controls-overlay-cast-button,
+video::-webkit-media-controls-remote-playback-button,
+video::-webkit-media-controls-cast-button,
+video::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* Header */
 .glass-header {
   background: rgba(0, 0, 0, 0.92);

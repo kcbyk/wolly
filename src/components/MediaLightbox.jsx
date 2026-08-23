@@ -142,6 +142,9 @@ export default function MediaLightbox() {
             playsInline
             preload="metadata"
             referrerPolicy="no-referrer"
+            disableRemotePlayback
+            disablePictureInPicture
+            controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
             className="max-h-[82vh] max-w-full rounded-2xl shadow-2xl border border-white/10"
           />
         ) : (

@@ -3,8 +3,8 @@ import { Play, Volume2, VolumeX, Download, ArrowLeft } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { downloadMedia } from "../utils/formatters";
 
-function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
-  const { users, showToast } = useApp();
+function VerticalVideoCard({ post, isActive, isMuted }) {
+  const { users } = useApp();
   const videoRef = useRef(null);
   const progressBarRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -108,23 +108,15 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
     if (wasPlayingRef.current) videoRef.current?.play().then(() => setIsPlaying(true)).catch(() => {});
   };
 
-  const handleDownload = async (e) => {
-    e.stopPropagation();
-    if (!videoMedia) return;
-    showToast("Video indiriliyor...", "info");
-    await downloadMedia(videoMedia.url, `video-${Date.now()}.mp4`);
-    showToast("Video başarıyla indirildi! 📥");
-  };
-
   if (!videoMedia) return null;
 
   return (
     <div
-      className="relative w-full bg-black overflow-hidden"
+      className="relative w-full bg-black overflow-hidden select-none"
       style={{ height: "100dvh", flexShrink: 0 }}
       onClick={togglePlay}
     >
-      {/* Video */}
+      {/* Video with Remote Playback / Cast disabled */}
       <video
         ref={videoRef}
         src={videoMedia.url}
@@ -134,25 +126,28 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
         playsInline
         preload="metadata"
         referrerPolicy="no-referrer"
+        disableRemotePlayback
+        disablePictureInPicture
+        controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
         className="absolute inset-0 w-full h-full object-contain bg-black"
       />
 
-      {/* Pause icon */}
+      {/* Pause indicator */}
       {!isPlaying && !isSeeking && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-16 h-16 rounded-full bg-black/40 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-black/50 border border-white/20 flex items-center justify-center shadow-2xl backdrop-blur-sm">
             <Play className="w-7 h-7 fill-white text-white ml-1" />
           </div>
         </div>
       )}
 
-      {/* Seek time popup */}
+      {/* Seek time popup indicator */}
       {isSeeking && videoRef.current?.duration && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30">
-          <div className="px-5 py-2.5 rounded-2xl bg-black/70 text-white font-mono text-2xl font-bold backdrop-blur-md">
+          <div className="px-5 py-2.5 rounded-2xl bg-black/80 text-white font-mono text-2xl font-bold backdrop-blur-md border border-white/20 shadow-2xl">
             {(() => {
               const t = (progress / 100) * (videoRef.current?.duration || 0);
               const m = Math.floor(t / 60);
@@ -163,34 +158,10 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
         </div>
       )}
 
-      {/* ── Mute & Download — top right, ghost style ── */}
-      <div
-        className="absolute top-16 right-4 flex flex-col gap-2 z-20"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onToggleMute}
-          className="w-10 h-10 flex items-center justify-center rounded-full text-white transition-all active:scale-90"
-          style={{ background: "rgba(0,0,0,0.35)" }}
-        >
-          {isMuted
-            ? <VolumeX className="w-5 h-5 text-white/90" />
-            : <Volume2 className="w-5 h-5 text-white/90" />}
-        </button>
-
-        <button
-          onClick={handleDownload}
-          className="w-10 h-10 flex items-center justify-center rounded-full text-white transition-all active:scale-90"
-          style={{ background: "rgba(0,0,0,0.35)" }}
-        >
-          <Download className="w-5 h-5 text-white/90" />
-        </button>
-      </div>
-
-      {/* ── Bottom: user + caption + seekbar ── */}
+      {/* Bottom info + seekbar */}
       <div
         className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-20 flex flex-col gap-2 z-20"
-        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.72) 50%, transparent)" }}
+        style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 45%, transparent)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2">
@@ -198,27 +169,32 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
             src={user.avatar}
             alt={user.name}
             referrerPolicy="no-referrer"
-            className="w-7 h-7 rounded-full object-cover ring-1 ring-white/30"
+            className="w-8 h-8 rounded-full object-cover ring-2 ring-white/20 shadow-md"
           />
-          <span className="text-sm font-semibold text-white drop-shadow">@{user.handle}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-white leading-tight drop-shadow">{user.name}</span>
+            <span className="text-[11px] text-slate-300 drop-shadow">@{user.handle}</span>
+          </div>
         </div>
 
         {post.content && (
-          <p className="text-xs text-white/80 leading-relaxed line-clamp-2">{post.content}</p>
+          <p className="text-xs text-white/90 leading-relaxed line-clamp-2 drop-shadow mt-0.5">
+            {post.content}
+          </p>
         )}
 
         {/* Drag-to-seek progress bar */}
         <div
           ref={progressBarRef}
-          className="relative w-full cursor-pointer select-none mt-1"
-          style={{ padding: "10px 0" }}
+          className="relative w-full cursor-pointer select-none mt-1.5"
+          style={{ padding: "12px 0" }}
           onMouseDown={onMouseDown}
           onTouchStart={onTouchStart}
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className={`w-full rounded-full bg-white/25 transition-all duration-150 ${isSeeking ? "h-1.5" : "h-0.5"}`}>
+          <div className={`w-full rounded-full bg-white/20 transition-all duration-150 ${isSeeking ? "h-2" : "h-1"}`}>
             <div
               className="h-full bg-white rounded-full pointer-events-none"
               style={{ width: `${progress}%` }}
@@ -226,8 +202,8 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
           </div>
           {isSeeking && (
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-lg pointer-events-none"
-              style={{ left: `calc(${progress}% - 6px)` }}
+              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white shadow-xl pointer-events-none"
+              style={{ left: `calc(${progress}% - 8px)` }}
             />
           )}
         </div>
@@ -237,7 +213,7 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
 }
 
 export default function VerticalFeed({ onBack }) {
-  const { posts } = useApp();
+  const { posts, showToast } = useApp();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const containerRef = useRef(null);
@@ -245,6 +221,9 @@ export default function VerticalFeed({ onBack }) {
   const videoPosts = posts.filter(
     (p) => p.mediaType === "video" || p.media?.some((m) => m.type === "video")
   );
+
+  const currentPost = videoPosts[activeIndex];
+  const currentVideoMedia = currentPost?.media?.find((m) => m.type === "video");
 
   const handleScroll = useCallback(() => {
     const container = containerRef.current;
@@ -260,6 +239,14 @@ export default function VerticalFeed({ onBack }) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+  const handleDownloadCurrent = async (e) => {
+    e?.stopPropagation?.();
+    if (!currentVideoMedia) return;
+    showToast("Video indiriliyor...", "info");
+    await downloadMedia(currentVideoMedia.url, `video-${Date.now()}.mp4`);
+    showToast("Video başarıyla indirildi! 📥");
+  };
+
   if (videoPosts.length === 0) {
     return (
       <div className="flex items-center justify-center h-screen text-slate-500 text-sm bg-black">
@@ -269,45 +256,66 @@ export default function VerticalFeed({ onBack }) {
   }
 
   return (
-    <div className="relative w-full" style={{ height: "100dvh" }}>
+    <div className="relative w-full h-full bg-black overflow-hidden">
 
-      {/* ── TikTok-style transparent top bar ── */}
-      <div
+      {/* ── Unified Sleek Top Bar ── */}
+      <header
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4"
         style={{
-          paddingTop: "env(safe-area-inset-top, 12px)",
-          paddingBottom: "12px",
-          background: "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)",
-          pointerEvents: "none",          // tüm bar geçirgen — sadece buton alanı tıklanabilir
+          paddingTop: "max(env(safe-area-inset-top), 14px)",
+          paddingBottom: "14px",
+          background: "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 65%, transparent 100%)",
         }}
       >
-        {/* Geri butonu */}
+        {/* Left: Geri Tuşu */}
         {onBack && (
           <button
             onClick={onBack}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-white active:scale-90 transition-transform"
-            style={{ background: "rgba(0,0,0,0.30)", pointerEvents: "auto" }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 hover:bg-black/80 border border-white/15 text-white text-xs font-semibold backdrop-blur-md shadow-lg active:scale-95 transition-all cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
+            <span>Akış</span>
           </button>
         )}
 
-        {/* Merkez: sayaç */}
-        <span
-          className="text-xs text-white/70 font-medium select-none"
-          style={{ pointerEvents: "none" }}
-        >
+        {/* Center: Sayaç */}
+        <div className="px-3 py-1 rounded-full bg-black/40 border border-white/10 text-[11px] font-semibold text-white/90 backdrop-blur-md shadow-sm">
           {activeIndex + 1} / {videoPosts.length}
-        </span>
+        </div>
 
-        {/* Sağ boşluk dengeleme */}
-        <div className="w-9 h-9" />
-      </div>
+        {/* Right: Ses & İndirme Butonları */}
+        <div className="flex items-center gap-2">
+          {/* Mute/Unmute */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMuted((m) => !m);
+            }}
+            title={isMuted ? "Sesi Aç" : "Sesi Kapat"}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 border border-white/15 text-white backdrop-blur-md shadow-lg active:scale-90 transition-all cursor-pointer"
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 text-red-400" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-white" />
+            )}
+          </button>
 
-      {/* ── Scrollable feed ── */}
+          {/* Download */}
+          <button
+            onClick={handleDownloadCurrent}
+            title="Videoyu İndir"
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/80 border border-white/15 text-white backdrop-blur-md shadow-lg active:scale-90 transition-all cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* ── Fullscreen Scrollable feed ── */}
       <div
         ref={containerRef}
-        className="w-full overflow-y-scroll"
+        className="w-full overflow-y-scroll no-scrollbar"
         style={{
           height: "100dvh",
           scrollSnapType: "y mandatory",
@@ -325,10 +333,6 @@ export default function VerticalFeed({ onBack }) {
               post={post}
               isActive={activeIndex === idx}
               isMuted={isMuted}
-              onToggleMute={(e) => {
-                e?.stopPropagation?.();
-                setIsMuted((m) => !m);
-              }}
             />
           </div>
         ))}

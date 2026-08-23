@@ -131,6 +131,9 @@ export default function VideoPlayer({ url, poster, onExpand, post }) {
         muted={isMuted}
         preload="metadata"
         referrerPolicy="no-referrer"
+        disableRemotePlayback
+        disablePictureInPicture
+        controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={handleTimeUpdate}
