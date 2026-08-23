@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { 
   ArrowLeft, Download, Upload, Trash2, Plus, Sparkles, 
-  Search, RefreshCw, CheckCircle, AlertCircle, Video, User, 
-  Layers, Database, FileCode, Check, ExternalLink 
+  Search, RefreshCw, CheckCircle, Video, User, 
+  Database, FileCode, Check, ExternalLink, Copy, HelpCircle 
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { autoScrapeSotweProfile, parseSotweHtml, parseSotweData, extractUsername } from "../utils/sotweScraper";
@@ -13,24 +13,19 @@ export default function AdminPanel({ onBack }) {
     users, 
     importScrapedData, 
     deletePost, 
-    deleteUserPosts, 
     resetToDefaultData, 
     showToast 
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState("auto"); // 'auto' | 'paste' | 'manual' | 'manage'
+  const [activeTab, setActiveTab] = useState("extractor"); // 'extractor' | 'manual' | 'manage'
 
-  // Auto scrape state
-  const [profileInput, setProfileInput] = useState("");
-  const [isScraping, setIsScraping] = useState(false);
-  const [scrapeStatus, setScrapeStatus] = useState("");
-  const [scrapedResult, setScrapedResult] = useState(null);
+  // Extractor state
+  const [profileUrl, setProfileUrl] = useState("");
+  const [pasteData, setPasteData] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [extractedResult, setExtractedResult] = useState(null);
   const [replaceExisting, setReplaceExisting] = useState(false);
-
-  // Paste dump state
-  const [pasteInput, setPasteInput] = useState("");
-  const [pasteUsername, setPasteUsername] = useState("");
-  const [isParsingPaste, setIsParsingPaste] = useState(false);
 
   // Manual video add state
   const [manualUsername, setManualUsername] = useState("");
@@ -41,82 +36,90 @@ export default function AdminPanel({ onBack }) {
   const [manageSearch, setManageSearch] = useState("");
 
   const totalVideos = posts.filter(p => p.mediaType === "video" || p.media?.some(m => m.type === "video")).length;
+  const detectedUsername = extractUsername(profileUrl);
 
-  // 1. Auto Scrape Handler
-  const handleAutoScrape = async (e) => {
-    e.preventDefault();
-    if (!profileInput.trim()) {
-      showToast("Lütfen bir Sotwe profil linki veya kullanıcı adı girin!", "error");
+  // 1. Try Automatic URL Scrape
+  const handleTryAuto = async () => {
+    if (!profileUrl.trim()) {
+      showToast("Lütfen bir Sotwe URL'i veya kullanıcı adı girin!", "error");
       return;
     }
 
-    setIsScraping(true);
-    setScrapedResult(null);
-    setScrapeStatus("Başlatılıyor...");
+    setIsProcessing(true);
+    setExtractedResult(null);
+    setStatusMessage("Otomatik bağlantı deneniyor...");
 
     try {
-      const result = await autoScrapeSotweProfile(profileInput, (msg) => {
-        setScrapeStatus(msg);
+      const result = await autoScrapeSotweProfile(profileUrl, (msg) => {
+        setStatusMessage(msg);
       });
 
       if (result.success && result.posts.length > 0) {
-        setScrapedResult(result);
-        setScrapeStatus(`🎉 Başarılı! ${result.posts.length} gönderi/video bulundu.`);
-        showToast(`${result.posts.length} video ve profil bilgisi çekildi! 🎯`);
+        setExtractedResult(result);
+        setStatusMessage(`🎉 Başarılı! ${result.posts.length} video bulundu.`);
+        showToast(`${result.posts.length} video başarıyla çekildi! 🎯`);
       } else {
-        setScrapeStatus("Gönderi bulunamadı veya profil gizli.");
-        showToast("Profilde video bulunamadı.", "error");
+        setStatusMessage("Otomatik çekilemedi. Lütfen aşağıdaki kutuya sayfa kaynağını (Ctrl+U) yapıştırın.");
+        showToast("Otomatik proxy engellendi. Sayfa kaynağını yapıştırın.", "info");
       }
     } catch (err) {
-      setScrapeStatus(`Hata: ${err.message}`);
+      setStatusMessage(`⚠️ ${err.message}`);
       showToast(err.message, "error");
     } finally {
-      setIsScraping(false);
+      setIsProcessing(false);
     }
   };
 
-  // Apply Scraped Result to Site
-  const handleApplyResult = () => {
-    if (!scrapedResult) return;
-    importScrapedData(scrapedResult.posts, scrapedResult.user, replaceExisting);
-    setScrapedResult(null);
-    setProfileInput("");
-    setScrapeStatus("");
-  };
-
-  // 2. Paste Dump Handler (HTML or JSON)
-  const handleParsePaste = () => {
-    if (!pasteInput.trim()) {
-      showToast("Lütfen kaynak kodunu veya JSON verisini yapıştırın!", "error");
+  // 2. Parse Pasted HTML, JSON or MP4 list
+  const handleParsePastedData = () => {
+    if (!pasteData.trim()) {
+      showToast("Lütfen kopyaladığınız sayfa kodunu veya linkleri yapıştırın!", "error");
       return;
     }
 
-    setIsParsingPaste(true);
+    setIsProcessing(true);
+    setStatusMessage("Ayrıştırılıyor...");
+
     try {
+      const targetUser = detectedUsername || "sotwe_user";
       let result = null;
+
       // Try JSON first
       try {
-        const json = JSON.parse(pasteInput);
-        result = parseSotweData(json, pasteUsername || "kullanici");
+        const json = JSON.parse(pasteData);
+        result = parseSotweData(json, targetUser);
       } catch {
-        // HTML dump parsing
-        result = parseSotweHtml(pasteInput, pasteUsername || "kullanici");
+        // Fallback to HTML & MP4 regex parser
+        result = parseSotweHtml(pasteData, targetUser);
       }
 
       if (result && result.success && result.posts.length > 0) {
-        setScrapedResult(result);
-        showToast(`${result.posts.length} adet video başarıyla ayıklandı! 🚀`);
+        setExtractedResult(result);
+        setStatusMessage(`🎉 Harika! ${result.posts.length} adet HD MP4 video başarıyla ayıklandı.`);
+        showToast(`${result.posts.length} adet video ayıklandı! 🚀`);
       } else {
-        showToast("Yapıştırılan veriden video çıkarılamadı. Lütfen geçerli bir HTML veya JSON yapıştırın.", "error");
+        setStatusMessage("❌ Yapıştırılan veride video bulunamadı. Lütfen geçerli bir HTML veya JSON yapıştırın.");
+        showToast("Video bulunamadı. Sayfa kaynağını (Ctrl+U) eksiksiz kopyaladığınızdan emin olun.", "error");
       }
     } catch (err) {
+      setStatusMessage(`Hata: ${err.message}`);
       showToast("Ayrıştırma hatası: " + err.message, "error");
     } finally {
-      setIsParsingPaste(false);
+      setIsProcessing(false);
     }
   };
 
-  // 3. Manual Add Video Handler
+  // 3. Publish & Apply to Site
+  const handleApplyToSite = () => {
+    if (!extractedResult) return;
+    importScrapedData(extractedResult.posts, extractedResult.user, replaceExisting);
+    setExtractedResult(null);
+    setPasteData("");
+    setProfileUrl("");
+    setStatusMessage("");
+  };
+
+  // 4. Manual Single Video Add
   const handleManualAdd = (e) => {
     e.preventDefault();
     if (!manualVideoUrl.trim()) {
@@ -124,7 +127,7 @@ export default function AdminPanel({ onBack }) {
       return;
     }
 
-    const username = manualUsername.trim() || "video_creator";
+    const username = manualUsername.trim() || "creator";
     const newPost = {
       id: `manual_${Date.now()}`,
       userId: username,
@@ -157,14 +160,9 @@ export default function AdminPanel({ onBack }) {
     showToast("Video başarıyla eklendi! 🎬");
   };
 
-  // Backup Export
+  // 5. Backup Export/Import
   const handleExportBackup = () => {
-    const data = {
-      posts,
-      users,
-      exportedAt: new Date().toISOString(),
-      version: "1.0"
-    };
+    const data = { posts, users, exportedAt: new Date().toISOString(), version: "1.0" };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -172,10 +170,9 @@ export default function AdminPanel({ onBack }) {
     a.download = `sotwe-backup-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast("Tüm site veritabanı JSON olarak indirildi! 💾");
+    showToast("Tüm veritabanı JSON olarak indirildi! 💾");
   };
 
-  // Backup Import
   const handleImportBackupFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -187,24 +184,24 @@ export default function AdminPanel({ onBack }) {
           importScrapedData(json.posts, json.users || [], true);
           showToast("Yedek başarıyla geri yüklendi! 🔄");
         } else {
-          showToast("Geçersiz yedek dosyası formatı!", "error");
+          showToast("Geçersiz yedek dosyası!", "error");
         }
       } catch (err) {
-        showToast("Dosya okunamadı: " + err.message, "error");
+        showToast("Hata: " + err.message, "error");
       }
     };
     reader.readAsText(file);
   };
 
   const filteredPosts = posts.filter(p => 
-    p.content.toLowerCase().includes(manageSearch.toLowerCase()) ||
-    p.userId.toLowerCase().includes(manageSearch.toLowerCase())
+    p.content?.toLowerCase().includes(manageSearch.toLowerCase()) ||
+    p.userId?.toLowerCase().includes(manageSearch.toLowerCase())
   );
 
   return (
     <div className="min-h-screen bg-black text-slate-100 font-sans pb-16">
       
-      {/* Top Navigation */}
+      {/* Header */}
       <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -219,13 +216,12 @@ export default function AdminPanel({ onBack }) {
             )}
             <div>
               <h1 className="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
-                <span>⚙️ Otomasyon & Admin Paneli</span>
+                <span>⚙️ Sotwe Otomasyon & Admin Paneli</span>
               </h1>
-              <p className="text-xs text-slate-400">Sotwe profillerini ve videolarını otomatik içeri aktarın</p>
+              <p className="text-xs text-slate-400">Sotwe profillerinden tüm videoları tek tıkla siteye çekin</p>
             </div>
           </div>
 
-          {/* Quick Stats Badges */}
           <div className="hidden sm:flex items-center gap-2">
             <div className="px-3 py-1 rounded-xl bg-[#141414] border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-1.5">
               <Video className="w-3.5 h-3.5 text-white" />
@@ -245,27 +241,15 @@ export default function AdminPanel({ onBack }) {
         {/* Navigation Tabs */}
         <div className="flex items-center gap-2 border-b border-white/10 pb-3 overflow-x-auto no-scrollbar">
           <button
-            onClick={() => setActiveTab("auto")}
+            onClick={() => setActiveTab("extractor")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 cursor-pointer ${
-              activeTab === "auto"
+              activeTab === "extractor"
                 ? "bg-white text-black shadow-lg"
                 : "bg-[#141414] text-slate-300 hover:text-white border border-white/10"
             }`}
           >
             <Sparkles className="w-4 h-4" />
-            <span>Otomatik Sotwe Çekici</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("paste")}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 cursor-pointer ${
-              activeTab === "paste"
-                ? "bg-white text-black shadow-lg"
-                : "bg-[#141414] text-slate-300 hover:text-white border border-white/10"
-            }`}
-          >
-            <FileCode className="w-4 h-4" />
-            <span>HTML / JSON Yapıştır</span>
+            <span>Sotwe Video & Profil Çekici (Garantili)</span>
           </button>
 
           <button
@@ -293,103 +277,141 @@ export default function AdminPanel({ onBack }) {
           </button>
         </div>
 
-        {/* ── TAB 1: AUTO SCRAPER ── */}
-        {activeTab === "auto" && (
+        {/* ── MAIN TAB: EXTRACTOR ── */}
+        {activeTab === "extractor" && (
           <div className="flex flex-col gap-6">
-            <div className="glass-card rounded-2xl p-6 flex flex-col gap-4 border border-white/10 bg-[#141414]">
+            
+            {/* Step-by-Step Interactive Card */}
+            <div className="glass-card rounded-2xl p-6 flex flex-col gap-5 border border-white/10 bg-[#141414]">
+              
+              {/* Header */}
               <div className="flex flex-col gap-1">
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-white" />
-                  Sotwe URL Otomatik Profil Çekici
+                  Sotwe Profil & Video Çekme Sihirbazı
                 </h2>
                 <p className="text-xs text-slate-400">
-                  Herhangi bir Sotwe profil linkini veya kullanıcı adını girin. Sistem videoları ve profil detaylarını otomatik çeker.
+                  URL'i girin, sayfayı açın ve kaynak kodunu yapıştırın — sistem sayfadaki tüm HD MP4 videolarını anında ayıklar!
                 </p>
               </div>
 
-              <form onSubmit={handleAutoScrape} className="flex flex-col sm:flex-row gap-3">
-                <div className="relative flex-1">
+              {/* Step 1: URL Input & Quick Open Button */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-white text-black text-[11px] font-bold flex items-center justify-center">1</span>
+                  Sotwe Profil URL'i veya Kullanıcı Adı
+                </label>
+
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
-                    value={profileInput}
-                    onChange={(e) => setProfileInput(e.target.value)}
-                    placeholder="https://www.sotwe.com/ardakara222 veya @kullanici_adi"
-                    className="w-full pl-4 pr-10 py-3 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-white transition-all font-mono"
-                    disabled={isScraping}
+                    value={profileUrl}
+                    onChange={(e) => setProfileUrl(e.target.value)}
+                    placeholder="https://www.sotwe.com/abbeyvelvett veya @kullanici_adi"
+                    className="flex-1 px-4 py-3 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-white font-mono"
                   />
-                  {profileInput && (
-                    <button
-                      type="button"
-                      onClick={() => setProfileInput("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs"
+
+                  {/* Open in Sotwe Link button */}
+                  {detectedUsername ? (
+                    <a
+                      href={`https://www.sotwe.com/${detectedUsername}?lang=tr`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-3 rounded-xl bg-[#212121] hover:bg-[#2d2d2d] border border-white/20 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer shadow-md"
                     >
-                      Temizle
-                    </button>
-                  )}
+                      <ExternalLink className="w-4 h-4" />
+                      <span>Sotwe'de Aç (@{detectedUsername})</span>
+                    </a>
+                  ) : null}
+
+                  {/* Try Auto button */}
+                  <button
+                    type="button"
+                    onClick={handleTryAuto}
+                    disabled={isProcessing || !profileUrl.trim()}
+                    className="px-4 py-3 rounded-xl bg-white hover:bg-slate-200 text-black text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isProcessing ? "animate-spin" : ""}`} />
+                    <span>Otomatik Dene</span>
+                  </button>
                 </div>
+              </div>
+
+              {/* Step 2: Paste Code Box */}
+              <div className="flex flex-col gap-2 pt-2 border-t border-white/10">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <span className="w-5 h-5 rounded-full bg-white text-black text-[11px] font-bold flex items-center justify-center">2</span>
+                    Sayfa Kaynağını (HTML) veya JSON'u Yapıştırın (%100 Garantili)
+                  </label>
+                  
+                  <span className="text-[11px] text-slate-400">
+                    Sotwe sayfasında <b>Ctrl+U</b> yapın → <b>Ctrl+A</b> ile kopyalayın
+                  </span>
+                </div>
+
+                <textarea
+                  rows={6}
+                  value={pasteData}
+                  onChange={(e) => setPasteData(e.target.value)}
+                  placeholder="Sotwe sayfa kaynağını (Ctrl+U) veya JSON verisini buraya yapıştırın..."
+                  className="w-full p-4 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:border-white leading-relaxed resize-y"
+                />
+              </div>
+
+              {/* Step 3: Extract Button */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                {statusMessage ? (
+                  <div className="text-xs font-mono text-slate-300 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                    <span>{statusMessage}</span>
+                  </div>
+                ) : <div />}
 
                 <button
-                  type="submit"
-                  disabled={isScraping || !profileInput.trim()}
-                  className="px-6 py-3 rounded-xl bg-white hover:bg-slate-200 disabled:opacity-50 text-black text-sm font-bold shadow-lg transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+                  onClick={handleParsePastedData}
+                  disabled={isProcessing || !pasteData.trim()}
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white hover:bg-slate-200 disabled:opacity-40 text-black text-sm font-bold shadow-2xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  {isScraping ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Çekiliyor...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4" />
-                      <span>Videoları Çek</span>
-                    </>
-                  )}
+                  <Sparkles className="w-4 h-4" />
+                  <span>Videoları ve Profili Ayıkla 🎯</span>
                 </button>
-              </form>
+              </div>
 
-              {/* Status feedback */}
-              {scrapeStatus && (
-                <div className="p-3 rounded-xl bg-black/60 border border-white/10 text-xs font-mono text-slate-300 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                  <span>{scrapeStatus}</span>
-                </div>
-              )}
             </div>
 
-            {/* Scraped Preview Card */}
-            {scrapedResult && (
-              <div className="glass-card rounded-2xl p-6 border border-white/20 bg-[#141414] flex flex-col gap-4 shadow-2xl">
+            {/* ── EXTRACTED PREVIEW CARD ── */}
+            {extractedResult && (
+              <div className="glass-card rounded-2xl p-6 border border-white/20 bg-[#141414] flex flex-col gap-4 shadow-2xl animate-fade-in">
                 <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <div className="flex items-center gap-3">
                     <img
-                      src={scrapedResult.user?.avatar}
-                      alt={scrapedResult.user?.name}
+                      src={extractedResult.user?.avatar}
+                      alt={extractedResult.user?.name}
                       referrerPolicy="no-referrer"
                       className="w-12 h-12 rounded-full object-cover ring-2 ring-white/20"
                     />
                     <div>
                       <h3 className="font-bold text-white text-base flex items-center gap-1.5">
-                        {scrapedResult.user?.name}
-                        {scrapedResult.user?.verified && <CheckCircle className="w-4 h-4 text-white" />}
+                        {extractedResult.user?.name}
+                        {extractedResult.user?.verified && <CheckCircle className="w-4 h-4 text-white" />}
                       </h3>
-                      <p className="text-xs text-slate-400">@{scrapedResult.user?.handle}</p>
+                      <p className="text-xs text-slate-400">@{extractedResult.user?.handle}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1.5 rounded-lg bg-white/10 text-white font-mono text-xs font-bold">
-                      {scrapedResult.posts.length} Gönderi / Video
-                    </span>
-                  </div>
+                  <span className="px-3 py-1.5 rounded-lg bg-white/10 text-white font-mono text-xs font-bold">
+                    {extractedResult.posts.length} HD Video Bulundu
+                  </span>
                 </div>
 
-                {scrapedResult.user?.bio && (
-                  <p className="text-xs text-slate-300 italic">{scrapedResult.user.bio}</p>
+                {extractedResult.user?.bio && (
+                  <p className="text-xs text-slate-300 italic">{extractedResult.user.bio}</p>
                 )}
 
                 {/* Video Previews Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-72 overflow-y-auto p-1">
-                  {scrapedResult.posts.slice(0, 8).map((p, idx) => {
+                  {extractedResult.posts.slice(0, 8).map((p, idx) => {
                     const video = p.media?.find(m => m.type === "video");
                     return (
                       <div key={idx} className="relative rounded-xl overflow-hidden bg-black aspect-video border border-white/10">
@@ -403,7 +425,7 @@ export default function AdminPanel({ onBack }) {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">Görsel</div>
+                          <div className="w-full h-full flex items-center justify-center text-xs text-slate-500">Video #{idx+1}</div>
                         )}
                         <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-black/80 text-[10px] font-mono text-white">
                           #{idx + 1}
@@ -414,7 +436,7 @@ export default function AdminPanel({ onBack }) {
                 </div>
 
                 {/* Import Options & Action */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-white/10">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-white/10">
                   <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
                     <input
                       type="checkbox"
@@ -422,65 +444,24 @@ export default function AdminPanel({ onBack }) {
                       onChange={(e) => setReplaceExisting(e.target.checked)}
                       className="rounded accent-white"
                     />
-                    <span>Mevcut tüm gönderileri silip sadece bu profili yükle</span>
+                    <span>Mevcut tüm gönderileri silip sadece bu profili yayınla</span>
                   </label>
 
                   <button
-                    onClick={handleApplyResult}
+                    onClick={handleApplyToSite}
                     className="w-full sm:w-auto px-6 py-3 rounded-xl bg-white hover:bg-slate-200 text-black text-sm font-bold shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
-                    <span>Siteye Aktar ve Yayınla ({scrapedResult.posts.length} Video)</span>
+                    <span>Siteye Aktar ve Yayınla ({extractedResult.posts.length} Video) 🚀</span>
                   </button>
                 </div>
               </div>
             )}
+
           </div>
         )}
 
-        {/* ── TAB 2: HTML / JSON PASTE PARSER ── */}
-        {activeTab === "paste" && (
-          <div className="glass-card rounded-2xl p-6 flex flex-col gap-4 border border-white/10 bg-[#141414]">
-            <div className="flex flex-col gap-1">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <FileCode className="w-5 h-5 text-white" />
-                Sotwe Sayfa Kaynağı / JSON Yapıştırıcı
-              </h2>
-              <p className="text-xs text-slate-400">
-                Sotwe sayfasına gidin, sağ tıklayıp <b>"Sayfa Kaynağını Görüntüle"</b> (Ctrl+U) yapın veya ağdan dönen JSON yanıtını kopyalayıp buraya yapıştırın. Sistem tüm MP4 video URL'lerini ve gönderileri anında çıkarır.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <input
-                type="text"
-                value={pasteUsername}
-                onChange={(e) => setPasteUsername(e.target.value)}
-                placeholder="Kullanıcı adı (İsteğe bağlı, örn: ardakara222)"
-                className="w-full px-4 py-2.5 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-white font-mono"
-              />
-
-              <textarea
-                rows={8}
-                value={pasteInput}
-                onChange={(e) => setPasteInput(e.target.value)}
-                placeholder="HTML sayfa kaynağını veya JSON kodunu buraya yapıştırın..."
-                className="w-full p-4 rounded-xl bg-black border border-white/15 text-white placeholder-slate-500 text-xs font-mono focus:outline-none focus:border-white leading-relaxed resize-y"
-              />
-
-              <button
-                onClick={handleParsePaste}
-                disabled={isParsingPaste || !pasteInput.trim()}
-                className="w-full sm:w-auto self-end px-6 py-3 rounded-xl bg-white hover:bg-slate-200 disabled:opacity-50 text-black text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>Videoları Ayıkla ve İçe Aktar</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── TAB 3: MANUAL VIDEO ADD ── */}
+        {/* ── TAB 2: MANUAL VIDEO ADD ── */}
         {activeTab === "manual" && (
           <form onSubmit={handleManualAdd} className="glass-card rounded-2xl p-6 flex flex-col gap-4 border border-white/10 bg-[#141414]">
             <div className="flex flex-col gap-1">
@@ -529,12 +510,10 @@ export default function AdminPanel({ onBack }) {
           </form>
         )}
 
-        {/* ── TAB 4: DATABASE & MANAGEMENT ── */}
+        {/* ── TAB 3: DATABASE & MANAGEMENT ── */}
         {activeTab === "manage" && (
           <div className="flex flex-col gap-6">
-            {/* Action Bar */}
             <div className="glass-card rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/10 bg-[#141414]">
-              {/* Search */}
               <div className="relative w-full sm:w-72">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
@@ -546,7 +525,6 @@ export default function AdminPanel({ onBack }) {
                 />
               </div>
 
-              {/* Backup & Reset buttons */}
               <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                 <button
                   onClick={handleExportBackup}
@@ -582,7 +560,7 @@ export default function AdminPanel({ onBack }) {
               </div>
             </div>
 
-            {/* Posts Table / List */}
+            {/* Posts List */}
             <div className="glass-card rounded-2xl overflow-hidden border border-white/10 bg-[#141414]">
               <div className="p-4 border-b border-white/10 flex items-center justify-between text-xs font-semibold text-slate-400">
                 <span>KAYITLI GÖNDERİLER ({filteredPosts.length})</span>
@@ -600,7 +578,6 @@ export default function AdminPanel({ onBack }) {
                         <div className="flex items-center gap-3 min-w-0">
                           <span className="font-mono text-xs text-slate-500 w-6">#{idx + 1}</span>
                           
-                          {/* Media Thumbnail */}
                           <div className="w-12 h-12 rounded-lg bg-black border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
                             {video ? (
                               <video
@@ -622,7 +599,6 @@ export default function AdminPanel({ onBack }) {
                           </div>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex items-center gap-2 shrink-0">
                           {video && (
                             <a
