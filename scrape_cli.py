@@ -1,10 +1,16 @@
 """
-Sotwe One-Click Profile Scraper CLI
-Usage: python scrape_cli.py <username_or_url>
-Example: python scrape_cli.py abbeyvelvett
+Sotwe One-Click Profile Scraper & Auto-Deploy CLI
+Kullanım: python scrape_cli.py
+Veya: python scrape_cli.py <kullanici_adi_veya_link>
 """
 
-import sys, os, asyncio, json, time, re
+import sys
+import os
+import asyncio
+import json
+import time
+import re
+import subprocess
 from playwright.async_api import async_playwright
 
 def extract_handle(input_str):
@@ -16,9 +22,35 @@ def extract_handle(input_str):
     clean = re.split(r'[?#/]', clean)[0]
     return clean.strip()
 
+def run_git_push(username, video_count):
+    print("\n" + "="*50)
+    print("[*] Otomatik GitHub Push Başlatılıyor...")
+    print("="*50)
+    
+    try:
+        # 1. git add
+        subprocess.run(["git", "add", "-A"], check=True)
+        print("[+] 'git add -A' tamamlandı.")
+        
+        # 2. git commit
+        commit_msg = f"feat(scraper): @{username} profilinden {video_count} video eklendi [auto-deploy]"
+        subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+        print(f"[+] 'git commit' tamamlandı: {commit_msg}")
+        
+        # 3. git push
+        subprocess.run(["git", "push"], check=True)
+        print("[+] 'git push' başarıyla tamamlandı! 🚀")
+        print("[🎉] Vercel deploy otomatik başladı. Site 1-2 dakika içinde güncellenecektir!")
+    except subprocess.CalledProcessError as e:
+        print(f"[-] Git hatası: {e}")
+    except Exception as e:
+        print(f"[-] Beklenmeyen hata: {e}")
+
 async def scrape_profile(username):
     url = f"https://www.sotwe.com/{username}?lang=tr"
-    print(f"[*] Scraping Sotwe profile: @{username} ({url})")
+    print(f"\n[*] Sotwe profili taranıyor: @{username}")
+    print(f"[*] Hedef URL: {url}")
+    print("[*] Chrome tarayıcı açılıyor (Cloudflare korumasını geçmek için)...")
     
     user_data_dir = os.path.join(os.getcwd(), ".chrome_user_data")
     os.makedirs(user_data_dir, exist_ok=True)
@@ -32,18 +64,24 @@ async def scrape_profile(username):
         )
         page = browser.pages[0] if browser.pages else await browser.new_page()
         
-        await page.goto(url, wait_until="domcontentloaded", timeout=45000)
-        print("[*] Waiting for content to load...")
-        await asyncio.sleep(6)
+        try:
+            await page.goto(url, wait_until="domcontentloaded", timeout=60000)
+        except Exception as e:
+            print(f"[-] Sayfa yükleme uyarısı: {e}")
+            
+        print("[*] Sayfa açıldı. Cloudflare doğrulanıyor ve içerik bekleniyor...")
+        await asyncio.sleep(5)
         
         # Scroll down to load videos
-        print("[*] Scrolling to load media...")
-        for i in range(8):
-            await page.evaluate("window.scrollBy(0, 1800)")
+        print("[*] Sayfa aşağı kaydırılarak tüm HD videolar yükleniyor...")
+        for i in range(12):
+            await page.evaluate("window.scrollBy(0, 2000)")
+            print(f"    -> Kaydırma {i+1}/12...")
             await asyncio.sleep(1.2)
             
         html = await page.content()
         await browser.close()
+        print("[+] Tarayıcı kapatıldı.")
         
         # Extract MP4s
         mp4_regex = r'https://[^\s"\'\\]+\.mp4[^\s"\'\\]*'
@@ -56,10 +94,10 @@ async def scrape_profile(username):
                 seen.add(v_url)
                 clean_mp4s.append(v_url)
                 
-        print(f"[+] Successfully extracted {len(clean_mp4s)} HD MP4 videos for @{username}!")
+        print(f"\n[+] Toplam {len(clean_mp4s)} adet HD MP4 video bulundu!")
         
         if len(clean_mp4s) == 0:
-            print("[-] No videos found on this profile.")
+            print("[-] Bu profilde video bulunamadı veya sayfa henüz yüklenmedi.")
             return
             
         now_ts = int(time.time())
@@ -101,7 +139,7 @@ async def scrape_profile(username):
         }
         
         # Update mockData.js
-        mockdata_path = "src/data/mockData.js"
+        mockdata_path = os.path.join("src", "data", "mockData.js")
         if os.path.exists(mockdata_path):
             with open(mockdata_path, "r", encoding="utf-8") as f:
                 code = f.read()
@@ -119,12 +157,36 @@ async def scrape_profile(username):
             with open(mockdata_path, "w", encoding="utf-8") as f:
                 f.write(new_code)
                 
-            print(f"[+] Added to mockData.js! Total posts now: {len(merged_posts)}")
+            print(f"[+] mockData.js güncellendi! Toplam video sayısı: {len(merged_posts)}")
+            
+            # Otomatik Git Push & Deploy
+            run_git_push(username, len(posts))
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python scrape_cli.py <username_or_url>")
+def main():
+    print("\n" + "="*50)
+    print(" 🎬 WOLLY SOTWE OTOMATIK VIDEO CEKICI & DEPLOYER")
+    print("="*50)
+    
+    target = ""
+    if len(sys.argv) >= 2 and sys.argv[1].strip():
+        target = sys.argv[1].strip()
+    else:
+        try:
+            target = input("\n👉 Sotwe Profil URL veya Kullanıcı Adı girin: ").strip()
+        except KeyboardInterrupt:
+            print("\n[-] Çıkış yapıldı.")
+            sys.exit(0)
+            
+    if not target:
+        print("[-] URL veya kullanıcı adı girmediniz!")
         sys.exit(1)
         
-    handle = extract_handle(sys.argv[1])
+    handle = extract_handle(target)
+    if not handle:
+        print("[-] Geçersiz kullanıcı adı veya URL!")
+        sys.exit(1)
+        
     asyncio.run(scrape_profile(handle))
+
+if __name__ == "__main__":
+    main()
