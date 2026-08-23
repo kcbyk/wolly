@@ -18,6 +18,11 @@ export default function AdminPanel({ onBack }) {
     showToast 
   } = useApp();
 
+  const handleBack = () => {
+    window.location.hash = "";
+    if (onBack) onBack();
+  };
+
   const [activeTab, setActiveTab] = useState("extractor"); // 'extractor' | 'manual' | 'manage'
 
   // Extractor state

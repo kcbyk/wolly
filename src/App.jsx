@@ -11,6 +11,7 @@ import UserProfileModal from "./components/UserProfileModal";
 import CommentsModal from "./components/CommentsModal";
 import CreatePostModal from "./components/CreatePostModal";
 import Toast from "./components/Toast";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { Search, X } from "lucide-react";
 
 function MainFeed() {
@@ -108,7 +109,7 @@ function MainFeed() {
   // 1. Admin & Otomasyon Paneli
   if (activeTab === "admin") {
     return (
-      <>
+      <ErrorBoundary onReset={() => setActiveTab("all")}>
         <AdminPanel
           onBack={() => {
             window.location.hash = "";
@@ -118,7 +119,7 @@ function MainFeed() {
         <MediaLightbox />
         <UserProfileModal />
         <Toast />
-      </>
+      </ErrorBoundary>
     );
   }
 

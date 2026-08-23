@@ -99,8 +99,6 @@ video::-webkit-media-controls-overlay-play-button {
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.8);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
-  content-visibility: auto;
-  contain-intrinsic-size: 350px;
 }
 
 .glass-card:hover {
