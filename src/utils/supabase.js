@@ -6,15 +6,18 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /**
- * Fetch posts from Supabase with pagination & optional user filter
+ * Fetch posts from Supabase (defaults to fetching all available posts up to 5000)
  */
-export async function getPostsFromSupabase(page = 0, pageSize = 20, userId = null) {
+export async function getPostsFromSupabase(page = 0, pageSize = 5000, userId = null) {
   try {
     let query = supabase
       .from('posts')
       .select('*')
-      .order('inserted_at', { ascending: false })
-      .range(page * pageSize, (page + 1) * pageSize - 1);
+      .order('inserted_at', { ascending: false });
+
+    if (pageSize > 0) {
+      query = query.range(page * pageSize, (page + 1) * pageSize - 1);
+    }
 
     if (userId) {
       query = query.eq('user_id', userId);
@@ -39,6 +42,27 @@ export async function getPostsFromSupabase(page = 0, pageSize = 20, userId = nul
   } catch (err) {
     console.error('Supabase getPosts error:', err);
     return [];
+  }
+}
+
+/**
+ * Fetch total post and video count directly from Supabase
+ */
+export async function getPostCountFromSupabase() {
+  try {
+    const { count, error } = await supabase
+      .from('posts')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Supabase count error:', error);
+      return 0;
+    }
+
+    return count || 0;
+  } catch (err) {
+    console.error('Supabase getPostCount error:', err);
+    return 0;
   }
 }
 

@@ -43,7 +43,7 @@ export function AppProvider({ children }) {
     async function loadCloudData() {
       try {
         const [cloudPosts, cloudUsers] = await Promise.all([
-          getPostsFromSupabase(0, 100),
+          getPostsFromSupabase(0, 5000),
           getUsersFromSupabase()
         ]);
         if (isMounted) {
@@ -61,7 +61,7 @@ export function AppProvider({ children }) {
 
     loadCloudData();
 
-    // Supabase Realtime channel for instant live video additions
+    // Supabase Realtime channel for instant live video & user additions
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -80,6 +80,47 @@ export function AppProvider({ children }) {
               stats: p.stats || { likes: 100, replies: 10, retweets: 20, bookmarks: 15 }
             };
             setPosts((prev) => [formatted, ...prev.filter((x) => x.id !== formatted.id)]);
+            setUsers((prev) =>
+              prev.map((u) => {
+                if (u.id === p.user_id) {
+                  return { ...u, postsCount: (u.postsCount || 0) + 1 };
+                }
+                return u;
+              })
+            );
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'users' },
+        (payload) => {
+          const u = payload.new;
+          if (u) {
+            const formatted = {
+              id: u.id,
+              name: u.name,
+              handle: u.handle,
+              avatar: u.avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${u.id}`,
+              banner: u.banner || "",
+              bio: u.bio || `@${u.id} paylaşımları`,
+              verified: !!u.verified,
+              badgeType: u.badge_type || "none",
+              following: u.following || 0,
+              followers: u.followers || 0,
+              postsCount: u.posts_count || 0
+            };
+            setUsers((prev) => [formatted, ...prev.filter((x) => x.id !== formatted.id)]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'posts' },
+        (payload) => {
+          const p = payload.old;
+          if (p && p.id) {
+            setPosts((prev) => prev.filter((x) => x.id !== p.id));
           }
         }
       )
