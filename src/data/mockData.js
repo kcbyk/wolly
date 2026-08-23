@@ -406,27 +406,7 @@ export const MOCK_POSTS = [
       "bookmarks": 91
     }
   },
-  {
-    "id": "abbeyvelvett_19_1787463434",
-    "userId": "AbbeyVelvett",
-    "content": "@AbbeyVelvett Özel Paylaşım #19",
-    "createdAt": "Yeni",
-    "mediaType": "video",
-    "media": [
-      {
-        "type": "video",
-        "url": "https://video-s.twimg.com/amplify_video/2081935406447099904/vid/avc1/720x1220/Lt-4O9RWKz9IB5Ve.mp4?tag=14",
-        "poster": "",
-        "alt": "@AbbeyVelvett video 19"
-      }
-    ],
-    "stats": {
-      "likes": 574,
-      "replies": 60,
-      "retweets": 175,
-      "bookmarks": 94
-    }
-  },
+
   {
     "id": "abbeyvelvett_20_1787463434",
     "userId": "AbbeyVelvett",

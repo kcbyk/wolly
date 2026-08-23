@@ -3,7 +3,7 @@ import {
   ArrowLeft, Download, Upload, Trash2, Plus, Sparkles, 
   Search, RefreshCw, CheckCircle, Video, User, 
   Database, Check, ExternalLink, Clipboard, Smartphone,
-  Zap, ShieldAlert, ArrowRight
+  Zap, ShieldAlert, ArrowRight, Copy
 } from "lucide-react";
 import { useApp } from "../context/AppContext";
 import { autoScrapeSotweProfile, parseSotweHtml, parseSotweData, extractUsername } from "../utils/sotweScraper";
