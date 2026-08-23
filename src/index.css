@@ -25,7 +25,6 @@
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
   }
 
   #root {
@@ -36,18 +35,7 @@
   }
 }
 
-/* 120fps GPU Acceleration & Hardware Rendering */
-.hardware-accelerated {
-  transform: translate3d(0, 0, 0);
-  -webkit-transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  perspective: 1000px;
-  -webkit-perspective: 1000px;
-  will-change: transform;
-}
-
-/* Custom AMOLED Scrollbars */
+/* Custom Clean AMOLED Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -75,7 +63,7 @@
   scrollbar-width: none;
 }
 
-/* Disable internal browser media overlays (Cast, Remote Playback, PiP overlay) */
+/* Disable internal browser media overlays */
 video::-internal-media-controls-overlay-cast-button,
 video::-webkit-media-controls-remote-playback-button,
 video::-webkit-media-controls-cast-button,
@@ -85,31 +73,27 @@ video::-webkit-media-controls-overlay-play-button {
   pointer-events: none !important;
 }
 
-/* Header */
+/* Fast Solid AMOLED Header (No GPU throttling) */
 .glass-header {
-  background: rgba(0, 0, 0, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.95);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Optimized 120fps Card Theme with content-visibility */
+/* 120fps Pure Solid Card Theme (Zero raster blur, zero lag) */
 .glass-card {
   background-color: #141414;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.8);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .glass-card:hover {
-  background-color: #1a1a1a;
+  background-color: #181818;
   border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.95);
-  transform: translateY(-1px);
 }
 
 .glass-modal {
   background-color: #141414;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.98);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.95);
 }

@@ -10,7 +10,7 @@ import { parseTweetText, downloadMedia } from "../utils/formatters";
 import { useApp } from "../context/AppContext";
 import VideoPlayer from "./VideoPlayer";
 
-export default function PostCard({ post }) {
+function PostCard({ post }) {
   const { 
     users, 
     openLightbox, 
@@ -193,3 +193,5 @@ export default function PostCard({ post }) {
     </article>
   );
 }
+
+export default React.memo(PostCard);

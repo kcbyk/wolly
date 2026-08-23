@@ -27,6 +27,27 @@ function MainFeed() {
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(12);
+
+  // Reset pagination on search change
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [searchQuery]);
+
+  // Smooth Infinite Scroll
+  useEffect(() => {
+    const handleWindowScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 900
+      ) {
+        setVisibleCount((prev) => Math.min(prev + 10, posts.length));
+      }
+    };
+
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleWindowScroll);
+  }, [posts.length]);
 
   // Sync hash routing & Automatic 1-Tap Bookmarklet Importer
   useEffect(() => {
@@ -181,17 +202,31 @@ function MainFeed() {
 
           {/* Feed Posts */}
           {filteredPosts.length > 0 ? (
-            <div
-              className={
-                layoutMode === "masonry"
-                  ? "grid grid-cols-1 md:grid-cols-2 gap-4 items-start"
-                  : "flex flex-col gap-4"
-              }
-            >
-              {filteredPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
+            <>
+              <div
+                className={
+                  layoutMode === "masonry"
+                    ? "grid grid-cols-1 md:grid-cols-2 gap-4 items-start"
+                    : "flex flex-col gap-4"
+                }
+              >
+                {filteredPosts.slice(0, visibleCount).map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+
+              {/* End of list or Loading More Indicator */}
+              {visibleCount < filteredPosts.length && (
+                <div className="py-6 text-center">
+                  <button
+                    onClick={() => setVisibleCount((prev) => prev + 12)}
+                    className="px-6 py-2.5 rounded-full bg-[#181818] hover:bg-[#222222] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white transition-all cursor-pointer shadow-lg"
+                  >
+                    Daha Fazla Göster ({filteredPosts.length - visibleCount} video daha)
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="glass-card rounded-3xl p-12 text-center flex flex-col items-center justify-center gap-4 my-8">
               <div className="w-16 h-16 rounded-full bg-[#1c1c1c] border border-white/10 flex items-center justify-center text-slate-400 shadow-inner">
