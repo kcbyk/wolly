@@ -20,23 +20,77 @@ function MainFeed() {
     setActiveTab,
     searchQuery,
     setSearchQuery,
-    layoutMode 
+    layoutMode,
+    importScrapedData,
+    showToast
   } = useApp();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Sync hash routing (e.g. /#admin or /#vertical)
+  // Sync hash routing & Automatic 1-Tap Bookmarklet Importer
   useEffect(() => {
     const handleHash = () => {
-      const hash = window.location.hash.replace("#", "");
-      if (hash === "admin") setActiveTab("admin");
-      else if (hash === "vertical") setActiveTab("vertical");
-      else if (hash === "all" || hash === "") setActiveTab("all");
+      const hashStr = window.location.hash.replace("#", "");
+
+      // Check if redirected from Bookmarklet with import payload
+      if (hashStr.startsWith("import=")) {
+        try {
+          const raw = decodeURIComponent(hashStr.replace("import=", ""));
+          const data = JSON.parse(raw);
+          if (data && data.videos && data.videos.length > 0) {
+            const username = data.user || "sotwe_user";
+            const nowTs = Date.now();
+            const newPosts = data.videos.map((mp4Url, idx) => ({
+              id: `${username}_import_${nowTs}_${idx}`,
+              userId: username,
+              content: `@${username} Videosu #${idx + 1}`,
+              createdAt: "Şimdi",
+              mediaType: "video",
+              media: [{
+                type: "video",
+                url: mp4Url,
+                poster: "",
+                alt: `@${username} video`
+              }],
+              stats: {
+                likes: 120 + idx * 10,
+                replies: 10 + idx,
+                retweets: 35 + idx * 2,
+                bookmarks: 18
+              }
+            }));
+
+            const newUser = {
+              id: username,
+              name: username,
+              handle: username,
+              avatar: `https://api.dicebear.com/7.x/identicon/svg?seed=${username}`,
+              bio: `@${username} Sotwe Medyaları`,
+              verified: true,
+              badgeType: "blue",
+              stats: { followers: 5000, following: 150, posts: newPosts.length }
+            };
+
+            importScrapedData(newPosts, newUser, false);
+            showToast(`🎉 ${newPosts.length} video otomatik olarak aktarıldı!`);
+            window.location.hash = "all";
+            setActiveTab("all");
+            return;
+          }
+        } catch (err) {
+          console.error("Import hash parse error:", err);
+        }
+      }
+
+      if (hashStr === "admin") setActiveTab("admin");
+      else if (hashStr === "vertical") setActiveTab("vertical");
+      else if (hashStr === "all" || hashStr === "") setActiveTab("all");
     };
+
     handleHash();
     window.addEventListener("hashchange", handleHash);
     return () => window.removeEventListener("hashchange", handleHash);
-  }, [setActiveTab]);
+  }, [setActiveTab, importScrapedData, showToast]);
 
   // Search filtering
   const filteredPosts = posts.filter((post) => {

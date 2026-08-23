@@ -279,6 +279,18 @@ export default function AdminPanel({ onBack }) {
           </button>
 
           <button
+            onClick={() => setActiveTab("bookmarklet")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 cursor-pointer ${
+              activeTab === "bookmarklet"
+                ? "bg-white text-black shadow-lg"
+                : "bg-[#141414] text-slate-300 hover:text-white border border-white/10"
+            }`}
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>🪄 1-Tık Sihirli Yer İmi (Mobilde En Kolay)</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab("manual")}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shrink-0 cursor-pointer ${
               activeTab === "manual"
@@ -540,6 +552,73 @@ export default function AdminPanel({ onBack }) {
               </div>
             )}
 
+          </div>
+        )}
+
+        {/* ── TAB: 1-TAP MAGIC BOOKMARKLET ── */}
+        {activeTab === "bookmarklet" && (
+          <div className="glass-card rounded-2xl p-6 flex flex-col gap-5 border border-white/10 bg-[#141414]">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-white" />
+                🪄 1-Tık Sihirli Yer İmi (Mobilde & Masaüstünde En Kolayı)
+              </h2>
+              <p className="text-xs text-slate-400">
+                Bu kodu tarayıcınızın yer imlerine (bookmark) bir kez ekleyin. Sotwe'de profili açıp bu yer imine bastığınız an, <b>tüm HD videoları otomatik toplayıp sitemize aktarır!</b>
+              </p>
+            </div>
+
+            {/* Bookmarklet Code Box */}
+            <div className="flex flex-col gap-2 p-4 rounded-xl bg-black border border-white/15">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-300 font-mono">Yer İmi Kodu:</span>
+                <button
+                  onClick={() => {
+                    const code = `javascript:(function(){var v=Array.from(document.querySelectorAll('video')).map(x=>x.src||x.querySelector('source')?.src).filter(Boolean);var mp4s=Array.from(document.documentElement.innerHTML.matchAll(/https:\\/\\/[^"'\\s\\\\]+\\.mp4[^"'\\s\\\\]*/g)).map(m=>m[0].replaceAll('\\\\u0026','&').replaceAll('\\\\',''));var all=[...new Set([...v,...mp4s])].filter(u=>u.includes('twimg.com')||u.includes('.mp4'));if(all.length===0){alert('Sayfada video bulunamadı! Lütfen biraz aşağı kaydırıp tekrar deneyin.');return;}var user=location.pathname.replace('/','').split('?')[0]||'sotwe_user';var data={user:user,videos:all};var target='${window.location.origin}/#import='+encodeURIComponent(JSON.stringify(data));window.location.href=target;})()`;
+                    navigator.clipboard.writeText(code);
+                    showToast("Yer imi kodu panoya kopyalandı! 📋");
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-200 text-black text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>Kodu Kopyala</span>
+                </button>
+              </div>
+
+              <textarea
+                readOnly
+                rows={4}
+                value={`javascript:(function(){var v=Array.from(document.querySelectorAll('video')).map(x=>x.src||x.querySelector('source')?.src).filter(Boolean);var mp4s=Array.from(document.documentElement.innerHTML.matchAll(/https:\\/\\/[^"'\\s\\\\]+\\.mp4[^"'\\s\\\\]*/g)).map(m=>m[0].replaceAll('\\\\u0026','&').replaceAll('\\\\',''));var all=[...new Set([...v,...mp4s])].filter(u=>u.includes('twimg.com')||u.includes('.mp4'));if(all.length===0){alert('Sayfada video bulunamadı! Lütfen biraz aşağı kaydırıp tekrar deneyin.');return;}var user=location.pathname.replace('/','').split('?')[0]||'sotwe_user';var data={user:user,videos:all};var target='${typeof window !== "undefined" ? window.location.origin : "https://wolly.vercel.app"}/#import='+encodeURIComponent(JSON.stringify(data));window.location.href=target;})()`}
+                className="w-full p-3 rounded-lg bg-[#0d0d0d] border border-white/10 text-white font-mono text-[11px] select-all focus:outline-none resize-none opacity-80"
+              />
+            </div>
+
+            {/* Step-by-Step Instructions */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <div className="p-4 rounded-xl bg-black/60 border border-white/10 flex flex-col gap-2">
+                <span className="w-6 h-6 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center">1</span>
+                <h4 className="text-xs font-bold text-white">Yer İmi Olarak Kaydet</h4>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Yukarıdaki kodu kopyalayın. Tarayıcınızda herhangi bir sayfayı yer imlerine ekleyip adres (URL) kısmına bu kodu yapıştırın.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-white/10 flex flex-col gap-2">
+                <span className="w-6 h-6 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center">2</span>
+                <h4 className="text-xs font-bold text-white">Sotwe Profilini Aç</h4>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Telefonundan veya bilgisayarından çekmek istediğin Sotwe profil sayfasını aç.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-black/60 border border-white/10 flex flex-col gap-2">
+                <span className="w-6 h-6 rounded-full bg-white text-black font-bold text-xs flex items-center justify-center">3</span>
+                <h4 className="text-xs font-bold text-white">Yer İmine Bas → Bitti!</h4>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Kaydettiğin yer imine bir kere bas. Sistem sayfadaki tüm videoları toplayıp doğrudan sitemizde yayınlar! 🎉
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
