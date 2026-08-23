@@ -6,8 +6,11 @@ import { downloadMedia } from "../utils/formatters";
 function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
   const { users, showToast } = useApp();
   const videoRef = useRef(null);
+  const progressBarRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const wasPlayingRef = useRef(false);
 
   const user = users.find((u) => u.id === post.userId) || {
     name: post.userId,
@@ -42,7 +45,7 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
 
   const togglePlay = () => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || isSeeking) return;
     if (video.paused) {
       video.play().then(() => setIsPlaying(true)).catch(() => {});
     } else {
@@ -53,8 +56,64 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
 
   const handleTimeUpdate = () => {
     const video = videoRef.current;
-    if (!video || !video.duration) return;
+    if (!video || !video.duration || isSeeking) return;
     setProgress((video.currentTime / video.duration) * 100);
+  };
+
+  // Seek to position from clientX
+  const seekToX = (clientX) => {
+    const bar = progressBarRef.current;
+    const video = videoRef.current;
+    if (!bar || !video || !video.duration) return;
+    const rect = bar.getBoundingClientRect();
+    const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    video.currentTime = pos * video.duration;
+    setProgress(pos * 100);
+  };
+
+  // ── MOUSE drag ──
+  const onMouseDown = (e) => {
+    e.stopPropagation();
+    const video = videoRef.current;
+    wasPlayingRef.current = !video?.paused;
+    video?.pause();
+    setIsSeeking(true);
+    seekToX(e.clientX);
+
+    const onMouseMove = (ev) => seekToX(ev.clientX);
+    const onMouseUp = () => {
+      setIsSeeking(false);
+      if (wasPlayingRef.current) {
+        video?.play().then(() => setIsPlaying(true)).catch(() => {});
+      }
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
+
+  // ── TOUCH drag ──
+  const onTouchStart = (e) => {
+    e.stopPropagation();   // critical: prevent scroll-snap from firing
+    const video = videoRef.current;
+    wasPlayingRef.current = !video?.paused;
+    video?.pause();
+    setIsSeeking(true);
+    seekToX(e.touches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    e.stopPropagation();
+    seekToX(e.touches[0].clientX);
+  };
+
+  const onTouchEnd = (e) => {
+    e.stopPropagation();
+    setIsSeeking(false);
+    if (wasPlayingRef.current) {
+      videoRef.current?.play().then(() => setIsPlaying(true)).catch(() => {});
+    }
   };
 
   const handleDownload = async (e) => {
@@ -90,10 +149,24 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
       />
 
       {/* Center play icon when paused */}
-      {!isPlaying && (
+      {!isPlaying && !isSeeking && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-16 h-16 rounded-full bg-black/60 border border-white/20 flex items-center justify-center">
             <Play className="w-7 h-7 fill-white text-white ml-1" />
+          </div>
+        </div>
+      )}
+
+      {/* Seek time indicator while dragging */}
+      {isSeeking && videoRef.current?.duration && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+          <div className="px-4 py-2 rounded-xl bg-black/80 border border-white/20 text-white font-mono text-lg font-bold backdrop-blur-md">
+            {(() => {
+              const t = (progress / 100) * (videoRef.current?.duration || 0);
+              const m = Math.floor(t / 60);
+              const s = Math.floor(t % 60);
+              return `${m}:${s < 10 ? "0" : ""}${s}`;
+            })()}
           </div>
         </div>
       )}
@@ -118,7 +191,7 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
         </button>
       </div>
 
-      {/* Bottom info — minimal, no gradients */}
+      {/* Bottom info + progress */}
       <div
         className="absolute bottom-0 left-0 right-0 px-4 pb-6 pt-16 flex flex-col gap-2 z-10"
         style={{ background: "linear-gradient(to top, rgba(0,0,0,0.75) 40%, transparent)" }}
@@ -140,30 +213,29 @@ function VerticalVideoCard({ post, isActive, isMuted, onToggleMute }) {
           </p>
         )}
 
-        {/* Progress bar — tıkla/dokun istediğin yere git */}
+        {/* ── Sürüklenebilir progress bar ── */}
         <div
-          className="w-full h-2 bg-white/20 rounded-full overflow-hidden mt-1 cursor-pointer active:scale-y-150 transition-transform"
-          onClick={(e) => {
-            e.stopPropagation();
-            const video = videoRef.current;
-            if (!video || !video.duration) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            video.currentTime = Math.max(0, Math.min(1, pos)) * video.duration;
-          }}
-          onTouchEnd={(e) => {
-            e.stopPropagation();
-            const video = videoRef.current;
-            if (!video || !video.duration) return;
-            const touch = e.changedTouches[0];
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pos = (touch.clientX - rect.left) / rect.width;
-            video.currentTime = Math.max(0, Math.min(1, pos)) * video.duration;
-          }}
+          ref={progressBarRef}
+          className="relative w-full cursor-pointer select-none"
+          style={{ padding: "10px 0", marginTop: 4 }} // geniş touch alanı
+          onMouseDown={onMouseDown}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onClick={(e) => e.stopPropagation()}
         >
+          {/* Track */}
+          <div className={`w-full rounded-full bg-white/20 transition-all ${isSeeking ? "h-2" : "h-1"}`}>
+            {/* Fill */}
+            <div
+              className="h-full bg-white rounded-full pointer-events-none"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          {/* Thumb dot */}
           <div
-            className="h-full bg-white rounded-full pointer-events-none"
-            style={{ width: `${progress}%`, transition: "width 0.1s linear" }}
+            className={`absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-lg pointer-events-none transition-opacity ${isSeeking ? "opacity-100" : "opacity-0"}`}
+            style={{ left: `calc(${progress}% - 7px)` }}
           />
         </div>
       </div>
@@ -181,12 +253,10 @@ export default function VerticalFeed() {
     (p) => p.mediaType === "video" || p.media?.some((m) => m.type === "video")
   );
 
-  // Detect active card via scroll position — no manual touch handlers (scroll-snap handles it)
   const handleScroll = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
-    const cardHeight = window.innerHeight;
-    const index = Math.round(container.scrollTop / cardHeight);
+    const index = Math.round(container.scrollTop / window.innerHeight);
     setActiveIndex(Math.max(0, Math.min(index, videoPosts.length - 1)));
   }, [videoPosts.length]);
 
@@ -212,18 +282,15 @@ export default function VerticalFeed() {
       style={{
         height: "100dvh",
         scrollSnapType: "y mandatory",
-        scrollBehavior: "auto",          /* smooth scroll causes double-snap on some devices */
+        scrollBehavior: "auto",
         WebkitOverflowScrolling: "touch",
-        overscrollBehavior: "none",      /* prevents rubber-band bounce revealing next card */
+        overscrollBehavior: "none",
       }}
     >
       {videoPosts.map((post, idx) => (
         <div
           key={post.id}
-          style={{
-            scrollSnapAlign: "start",
-            scrollSnapStop: "always",    /* force stop at each card, no double-skip */
-          }}
+          style={{ scrollSnapAlign: "start", scrollSnapStop: "always" }}
         >
           <VerticalVideoCard
             post={post}
