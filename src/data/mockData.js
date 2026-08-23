@@ -43,7 +43,7 @@ export const MOCK_USERS = [
 
 export const MOCK_POSTS = [
   {
-    "id": "Turk_ifsa355_1_1787468701",
+    "id": "Turk_ifsa355_1_1787468878",
     "userId": "Turk_ifsa355",
     "content": "@Turk_ifsa355 Video #1",
     "createdAt": "Yeni",
@@ -64,7 +64,7 @@ export const MOCK_POSTS = [
     }
   },
   {
-    "id": "Turk_ifsa355_2_1787468701",
+    "id": "Turk_ifsa355_2_1787468878",
     "userId": "Turk_ifsa355",
     "content": "@Turk_ifsa355 Video #2",
     "createdAt": "Yeni",
@@ -85,7 +85,7 @@ export const MOCK_POSTS = [
     }
   },
   {
-    "id": "Turk_ifsa355_3_1787468701",
+    "id": "Turk_ifsa355_3_1787468878",
     "userId": "Turk_ifsa355",
     "content": "@Turk_ifsa355 Video #3",
     "createdAt": "Yeni",
@@ -106,7 +106,7 @@ export const MOCK_POSTS = [
     }
   },
   {
-    "id": "Turk_ifsa355_4_1787468701",
+    "id": "Turk_ifsa355_4_1787468878",
     "userId": "Turk_ifsa355",
     "content": "@Turk_ifsa355 Video #4",
     "createdAt": "Yeni",
@@ -127,7 +127,7 @@ export const MOCK_POSTS = [
     }
   },
   {
-    "id": "Turk_ifsa355_5_1787468701",
+    "id": "Turk_ifsa355_5_1787468878",
     "userId": "Turk_ifsa355",
     "content": "@Turk_ifsa355 Video #5",
     "createdAt": "Yeni",
@@ -148,7 +148,7 @@ export const MOCK_POSTS = [
     }
   },
   {
-    "id": "Turk_ifsa355_6_1787468701",
+    "id": "Turk_ifsa355_6_1787468878",
     "userId": "Turk_ifsa355",
     "content": "@Turk_ifsa355 Video #6",
     "createdAt": "Yeni",
@@ -169,7 +169,7 @@ export const MOCK_POSTS = [
     }
   },
   {
-    "id": "Turk_ifsa355_7_1787468701",
+    "id": "Turk_ifsa355_7_1787468878",
     "userId": "Turk_ifsa355",
     "content": "@Turk_ifsa355 Video #7",
     "createdAt": "Yeni",
@@ -190,7 +190,7 @@ export const MOCK_POSTS = [
     }
   },
   {
-    "id": "Turk_ifsa355_8_1787468701",
+    "id": "Turk_ifsa355_8_1787468878",
     "userId": "Turk_ifsa355",
     "content": "@Turk_ifsa355 Video #8",
     "createdAt": "Yeni",
