@@ -127,7 +127,12 @@ function MainFeed() {
   if (activeTab === "vertical") {
     return (
       <div className="fixed inset-0 bg-black text-slate-100 font-sans overflow-hidden">
-        <VerticalFeed onBack={() => setActiveTab("all")} />
+        <VerticalFeed
+          onBack={() => {
+            window.location.hash = "";
+            setActiveTab("all");
+          }}
+        />
         <MediaLightbox />
         <UserProfileModal />
         <CommentsModal />

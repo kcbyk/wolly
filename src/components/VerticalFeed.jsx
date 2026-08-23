@@ -297,6 +297,11 @@ export default function VerticalFeed({ onBack }) {
     showToast("Video başarıyla indirildi! 📥");
   };
 
+  const handleBack = () => {
+    window.location.hash = "";
+    if (onBack) onBack();
+  };
+
   if (videoPosts.length === 0) {
     return (
       <div className="flex items-center justify-center h-screen text-slate-500 text-sm bg-black">
@@ -321,7 +326,7 @@ export default function VerticalFeed({ onBack }) {
         {/* Left: Geri Tuşu */}
         {onBack && (
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="flex items-center gap-1.5 p-2 text-white text-sm font-semibold drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] active:scale-90 hover:opacity-80 transition-transform cursor-pointer select-none"
             style={{ pointerEvents: "auto" }}
           >
